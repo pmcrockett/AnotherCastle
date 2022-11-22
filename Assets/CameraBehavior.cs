@@ -13,6 +13,7 @@ public class CameraBehavior : MonoBehaviour {
     public float outerCameraTraceRadius = 1.5f;
     public float minimumViewAngle = -15;
     public float maximumViewAngle = 60;
+    public float blockAdjustSpeed = 0.1f;
     public bool invertX = false;
     public bool invertY = false;
     private Vector3 idealCameraPosition;
@@ -23,6 +24,7 @@ public class CameraBehavior : MonoBehaviour {
     private bool sightSpheresActive = false;
     private bool resetHookshotAim = true;
     private float[] hookshotXY = new float[2];
+    private float blockStart = -1;
     List<GameObject> cameraSpheres = new List<GameObject>();
 
     void Awake()
@@ -119,16 +121,34 @@ public class CameraBehavior : MonoBehaviour {
     private Vector3 GetBlockedCameraPosition() {
         Vector3 directionToCamera = (idealCameraPosition - cameraTarget.transform.position).normalized;
         Vector3 traceStart = cameraTarget.transform.position;
-        float traceDistance = Vector3.Distance(traceStart, (directionToCamera * cameraDistance - traceStart) + traceStart);
-        RaycastHit cameraSight;
-        if (Physics.SphereCast(traceStart, innerCameraTraceRadius, directionToCamera, out cameraSight, traceDistance, 0b10000000, QueryTriggerInteraction.Ignore)
-            && !(cameraSight.collider.gameObject.GetComponent<LiftTarget>() 
-            && !Util.IsGrounded(cameraSight.collider.gameObject, (Util.GetColliderWidth(cameraSight.collider.gameObject) - 0.02f) / 2))) {
-            //return cameraSight.point + directionToCamera;
-            Vector3 blockedPosition = Vector3.Project(cameraSight.point - cameraTarget.transform.position, directionToCamera) + cameraTarget.transform.position;
-            if (Vector3.Distance(cameraTarget.transform.position, blockedPosition) > Vector3.Distance(cameraTarget.transform.position, idealCameraPosition)) return idealCameraPosition;
-            else return blockedPosition;
+        Vector3 closestBlockedToCamera = traceStart;
+        Vector3 farthestBlockedFromCamera = idealCameraPosition;
+        float traceDistance = Vector3.Distance(traceStart, (directionToCamera * cameraDistance) + traceStart);
+        RaycastHit[] cameraSight = Physics.SphereCastAll(traceStart, innerCameraTraceRadius, directionToCamera, traceDistance, 0b10000000, QueryTriggerInteraction.Ignore);
+        foreach (RaycastHit x in cameraSight) {
+            Debug.Log("Camera sight: " + x.collider.gameObject.name);
+            if (x.collider.gameObject.GetComponent<NoCameraCollision>() == null
+            && !(x.collider.gameObject.GetComponent<LiftTarget>()
+            && (x.collider.gameObject.layer == 6 && !Util.IsGrounded(x.collider.gameObject, (Util.GetColliderWidth(x.collider.gameObject) - 0.02f) / 2)))) {
+                //return cameraSight.point + directionToCamera;
+                Vector3 hitPosition = Vector3.Project(x.point - cameraTarget.transform.position, directionToCamera) + cameraTarget.transform.position;
+                if (Vector3.Distance(traceStart, hitPosition) > Vector3.Distance(traceStart, closestBlockedToCamera)) closestBlockedToCamera = hitPosition;
+                if (Vector3.Distance(traceStart, hitPosition) < Vector3.Distance(traceStart, farthestBlockedFromCamera)) farthestBlockedFromCamera = hitPosition;
+                //if (Vector3.Distance(cameraTarget.transform.position, blockedPosition) > Vector3.Distance(cameraTarget.transform.position, idealCameraPosition)) return idealCameraPosition;
+                //else return blockedPosition;
+            } else if (x.collider.gameObject.GetComponent<NoCameraCollision>() != null) {
+                //x.collider.gameObject.GetComponent<NoCameraCollision>().MakeTransparent();
+                x.collider.gameObject.GetComponent<GhostEffect>().isGhost = true;
+            }
         }
+        if (farthestBlockedFromCamera != idealCameraPosition) {
+            if (blockStart < 0) {
+                blockStart = Time.time;
+            }
+            if (Time.time - blockStart >= blockAdjustSpeed || Vector3.Distance(transform.position, closestBlockedToCamera) < cameraDistance / 2) {
+                return farthestBlockedFromCamera;
+            } else return idealCameraPosition;
+        } else blockStart = -1;
         return idealCameraPosition;
     }
     private void AimHookshot() {
@@ -146,6 +166,7 @@ public class CameraBehavior : MonoBehaviour {
         hookshotXY[0] = Mathf.Clamp(hookshotXY[0] + camInput[0] * Time.deltaTime * Screen.currentResolution.width / hookshot.aimSpeedDenominator, 0, Screen.currentResolution.width);
         hookshotXY[1] = Mathf.Clamp(hookshotXY[1] + camInput[1] * Time.deltaTime * Screen.currentResolution.width / hookshot.aimSpeedDenominator, 0, Screen.currentResolution.height);
         hookshot.aimTarget = gameObject.GetComponent<Camera>().ScreenToWorldPoint(new Vector3(hookshotXY[0], hookshotXY[1], cameraTarget.GetComponent<Hookshot>().hookshotLength));
+        cameraTarget.GetComponent<GhostEffect>().isGhost = true;
         //hookshot.aimTarget = gameObject.GetComponent<Camera>().ScreenToWorldPoint(new Vector3(camInput[0] * Screen.currentResolution.width, camInput[1] * Screen.currentResolution.height, cameraTarget.GetComponent<Hookshot>().hookshotLength));
         Debug.DrawLine(cameraTarget.transform.position, hookshot.aimTarget, Color.yellow);
     }

@@ -15,6 +15,8 @@ GameObject:
   - component: {fileID: 3839771461047290166}
   - component: {fileID: 5550622986905819935}
   - component: {fileID: 4741692534272454794}
+  - component: {fileID: 8368803633311388689}
+  - component: {fileID: 292966096694204077}
   m_Layer: 7
   m_Name: HookshotPost
   m_TagString: Untagged
@@ -623,7 +625,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 25a9fb42d361f46ad89221f6d301e96e, type: 2}
+  - {fileID: 2100000, guid: a84e63a30ea77e2468e385c981380ea1, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -679,3 +681,30 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ae28e42a24d2b9c47b0d4ce0d6525a78, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &8368803633311388689
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2661427533163594393}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 45d28c02900419d418b02efc45588371, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &292966096694204077
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2661427533163594393}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc787f6e254232e468d6f0fcebb57a9e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fadeSpeed: 1
+  isGhost: 0
+  isTransparent: 0

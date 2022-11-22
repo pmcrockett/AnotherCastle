@@ -8,10 +8,12 @@ public class LiftGlove : MonoBehaviour
     public bool isLifting = false;
     public bool isThrowFrame = false;
     public GameObject liftObj;
+    private Animator anim;
     private float inputCooldownStart;
     private bool inputHeld = false;
     void Awake() {
         input = new PlayerInput();
+        anim = GetComponent<Animator>();
     }
 
     void OnEnable() {
@@ -53,6 +55,8 @@ public class LiftGlove : MonoBehaviour
                 hitTarget.StartLift(gameObject);
                 liftObj = hitTarget.gameObject;
                 isLifting = true;
+                anim.SetBool("liftStart", true);
+                anim.SetFloat("liftSpeed", hitTarget.liftSpeed / 3);
             }
         }
         if (liftInput > 0) {
@@ -71,6 +75,7 @@ public class LiftGlove : MonoBehaviour
             //Vector3 throwDirection = (Quaternion.AngleAxis(0, transform.right) * transform.forward);
             liftObj.GetComponent<LiftTarget>().EndLift(throwDirection, GetComponent<Rigidbody>().velocity / 5);
             isThrowFrame = true;
+            anim.SetBool("throwStart", true);
             //liftObj.GetComponent<LiftTarget>().EndLift(throwDirection, 5);
             Debug.Log("Throwing object at angle: " + liftObj.GetComponent<LiftTarget>().throwAngle * -1 + " with velocity " + GetComponent<Rigidbody>().velocity / 10 + " in direction " + throwDirection);
         }

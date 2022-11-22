@@ -15,6 +15,7 @@ public class Switch : MonoBehaviour
     private Quaternion switchTargetTriggeredQuat;
     private Vector3 initialPosition;
     private Vector3 triggeredPosition;
+    private List<GameObject> triggerList = new List<GameObject>();
     private float switchLerp = 0;
     private float switchTargetLerp = 0;
 
@@ -61,8 +62,12 @@ public class Switch : MonoBehaviour
 
     private void OnTriggerEnter(Collider other) {
         isTriggered = true;
+        triggerList.Add(other.gameObject);
     }
     private void OnTriggerExit(Collider other) {
-        isTriggered = false;
+        triggerList.Remove(other.gameObject);
+        if (triggerList.Count <= 0) {
+            isTriggered = false;
+        }
     }
 }

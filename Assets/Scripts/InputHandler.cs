@@ -19,14 +19,17 @@ public class InputHandler : MonoBehaviour
     public bool isWallJumping = false;
     public bool isFalling = false;
     private Rigidbody body;
+    private Animator anim;
     private SphereCollider jumpCollider;
+    private Attack attack;
     private bool canJump = true;
     private float lastJumpTime;
     private float lastWallJumpTime;
     private float wallJumpWindowStart;
     private Vector3 wallJumpVector;
     private float fallCastRadius;
-    private bool jumpInputHeld;
+    private bool jumpInputHeld = false;
+    private bool attackInputHeld = false;
     private Vector3 lastUpdatePosition;
     private Vector3 currentMoveDirection = new Vector3(0, 0, 0);
     private Hookshot hookshot;
@@ -40,6 +43,8 @@ public class InputHandler : MonoBehaviour
     {
         input = new PlayerInput();
         body = GetComponent<Rigidbody>();
+        anim = GetComponent<Animator>();
+        attack = GetComponent<Attack>();
         //jumpCollider = GetComponent<BoxCollider>();
         jumpCollider = GetComponent<SphereCollider>();
         fallCastRadius = (Util.GetColliderWidth(gameObject) - 0.02f) / 2;
@@ -69,7 +74,7 @@ public class InputHandler : MonoBehaviour
     void Update()
     {
         //if (!isFalling && lastMoveInput != Vector3.zero && !disableMoveImpulse) {
-        if (!isFalling && desiredForward != Vector3.zero && !disableMoveImpulse) {
+        if (!isFalling && desiredForward != Vector3.zero && !disableMoveImpulse && climbLerp <= 0) {
             //transform.rotation = Quaternion.LookRotation(lastMoveInput, Vector3.up);
             //Quaternion idealRotation = Quaternion.LookRotation(lastMoveInput, Vector3.up);
             Quaternion idealRotation = Quaternion.LookRotation(desiredForward, Vector3.up);
@@ -87,6 +92,7 @@ public class InputHandler : MonoBehaviour
         //UpdateWallCollisions();
         currentMoveDirection = (transform.position - lastUpdatePosition).normalized;
         currentVelocity = Vector3.Distance(transform.position, lastUpdatePosition);
+        Attack();
         Jump();
         Movement();
         ClimbStairs();
@@ -105,10 +111,17 @@ public class InputHandler : MonoBehaviour
         Vector3 moveForce = flattenedForward * moveInput.y + flattenedRight * moveInput.x;
         //if (!disableMoveImpulse && !hookshot.isMoving && climbLerp <= 0) body.AddForce(moveForce);
         if (!disableMoveImpulse && !hookshot.isMoving && climbLerp <= 0 ) {
-            if ((!isFalling && Vector3.Dot(transform.forward, moveForce.normalized) >= 0.8) || isFalling) body.AddForce(transform.forward * moveForce.magnitude);
+            if ((!isFalling && Vector3.Dot(transform.forward, moveForce.normalized) >= 0.8) || isFalling) {
+                body.AddForce(transform.forward * moveForce.magnitude);
+            }
         }
         lastMoveInput = moveForce / (moveSpeed * Time.deltaTime);
         if ((lastMoveInput != Vector3.zero && !isFalling) || isFalling) desiredForward = lastMoveInput;
+        if (body.velocity.magnitude > 0 && !isFalling) {
+            anim.SetFloat("walkSpeed", body.velocity.magnitude / 7);
+        } else {
+            anim.SetFloat("walkSpeed", 0);
+        }
     }
 
     private void Jump()
@@ -119,10 +132,12 @@ public class InputHandler : MonoBehaviour
             disableMoveImpulse = false;
             isFalling = false;
             isWallJumping = false;
+            anim.SetBool("isFalling", false);
         } else if (!Util.IsGrounded(gameObject, fallCastRadius)) {
             canJump = false;
             body.drag = airDrag;
             isFalling = true;
+            anim.SetBool("isFalling", true);
             if (CanEdgeGrab() && jumpInputHeld) {
                 StartClimbEdge();
             }
@@ -131,11 +146,12 @@ public class InputHandler : MonoBehaviour
         float jumpInput = input.Player.Jump.ReadValue<float>();
       
         if (jumpInput > 0 ) {
-            if (climbLerp <= 0 && !GetComponent<LiftGlove>().isLifting) {
+            if (climbLerp <= 0 && !GetComponent<LiftGlove>().isLifting && !attack.isAttacking) {
                 if (canJump && !jumpInputHeld && !hookshot.isMoving) {
                     body.AddForce(Vector3.up * jumpHeight);
                     disableMoveImpulse = false;
                     lastJumpTime = Time.time;
+                    anim.SetBool("jumpStart", true);
                 } else if (!canJump && !jumpInputHeld && Time.time - wallJumpWindowStart <= 0.25) {
                     WallJump(wallJumpVector);
                 } else if (!canJump && !jumpInputHeld) {
@@ -145,6 +161,16 @@ public class InputHandler : MonoBehaviour
             jumpInputHeld = true;
         } else jumpInputHeld = false;
 
+    }
+
+    private void Attack() {
+        float attackInput = input.Player.Attack.ReadValue<float>();
+        if (attackInput > 0 ) {
+            if (!attackInputHeld && !attack.isAttacking && !isFalling && climbLerp <= 0 && !disableMoveImpulse && !GetComponent<LiftGlove>().isLifting) {
+                attack.StartAttack(null);
+            }
+            attackInputHeld = true;
+        } else attackInputHeld = false;
     }
 
     private bool CanClimbStairs() {
@@ -213,6 +239,7 @@ public class InputHandler : MonoBehaviour
             climbEndPos = climbHit.point + new Vector3(0, GetComponent<CapsuleCollider>().height / 2, 0);
             climbLerp += Time.deltaTime * climbSpeed;
             GetComponent<CapsuleCollider>().enabled = false;
+            anim.SetBool("climbStart", true);
         }
     }
 
@@ -233,6 +260,7 @@ public class InputHandler : MonoBehaviour
         isWallJumping = true;
         wallJumpWindowStart = 0;
         lastJumpTime = 0;
+        anim.SetBool("wallJumpStart", true);
     }
     private bool CanEdgeGrab() {
         bool lowCast = Physics.Raycast(transform.position - new Vector3(0, GetComponent<CapsuleCollider>().height / 3.6f, 0), transform.forward, 1.25f, 0b10000000, QueryTriggerInteraction.Ignore);
