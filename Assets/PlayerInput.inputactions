@@ -42,7 +42,7 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "Lift",
+                    "name": "Interact",
                     "type": "Button",
                     "id": "81adb4bf-2bc1-4b4c-9a13-da1bc62a0352",
                     "expectedControlType": "Button",
@@ -315,11 +315,11 @@
                 {
                     "name": "",
                     "id": "908a715b-7ed1-4920-98ba-b35215a84e35",
-                    "path": "<Gamepad>/buttonNorth",
+                    "path": "<Gamepad>/buttonEast",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Lift",
+                    "action": "Interact",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },

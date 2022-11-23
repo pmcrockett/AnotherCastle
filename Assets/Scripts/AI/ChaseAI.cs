@@ -36,7 +36,8 @@ public class ChaseAI : MonoBehaviour {
                 Init();
             }
             //if (GetComponent<Rigidbody>().velocity.magnitude < 0.01) {
-            if (Util.IsGrounded(gameObject, GetComponent<CapsuleCollider>().radius - 0.05f)) {
+            if (Util.IsGrounded(gameObject, GetComponent<CapsuleCollider>().radius - 0.05f)
+                && target.GetComponent<InputHandler>().activeDialog == null) {
                 float targetDist = Vector3.Distance(transform.position, target.transform.position);
                 if (targetDist > closestDist + desiredDistanceThreshold) {
                     transform.position = Vector3.MoveTowards(transform.position, target.transform.position, moveSpeed * Time.deltaTime);
@@ -51,9 +52,8 @@ public class ChaseAI : MonoBehaviour {
                     isInTargetRange = true;
                     anim.SetFloat("walkSpeed", 0);
                 }
-            }
-            //transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.FromToRotation(transform.forward, target.transform.position - transform.position), 2500 * Time.deltaTime);
-            transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(Util.FlattenVectorOnY(target.transform.position - transform.position), Vector3.up), rotateSpeed * Time.deltaTime);
+                transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(Util.FlattenVectorOnY(target.transform.position - transform.position), Vector3.up), rotateSpeed * Time.deltaTime);
+            } else anim.SetFloat("walkSpeed", 0);
         } else {
             anim.SetFloat("walkSpeed", 0);
         }

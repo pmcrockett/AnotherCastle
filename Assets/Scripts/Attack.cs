@@ -7,6 +7,7 @@ public class Attack : MonoBehaviour {
     public float attackSpeed = 5;
     public float attackForce = 175;
     public float forceAngle = 45;
+    public bool isEnabled = false;
     public bool isAttacking = false;
     public bool isReturning = false;
     private float adjustedRange;
@@ -49,20 +50,22 @@ public class Attack : MonoBehaviour {
         }
     }
     public void StartAttack(GameObject _target) {
-        isAttacking = true;
-        isReturning = false;
-        attackLerp = 0;
-        attackStartPos = transform.position;
-        attackStartDir = transform.forward;
-        target = _target;
-        anim.SetBool("isAttacking", true);
-        CapsuleCollider collider = GetComponent<CapsuleCollider>();
-        RaycastHit attackCast;
-        Vector3 point1 = transform.position - new Vector3(0, collider.height / 2 + collider.radius, 0);
-        Vector3 point2 = transform.position + new Vector3(0, collider.height / 2 - collider.radius, 0);
-        if (Physics.CapsuleCast(point1, point2, collider.radius - 0.01f, attackStartDir, out attackCast, attackRange - collider.radius, 0b10000000, QueryTriggerInteraction.Ignore)) {
-            adjustedRange = attackCast.distance;
-        } else adjustedRange = attackRange;
+        if (isEnabled) {
+            isAttacking = true;
+            isReturning = false;
+            attackLerp = 0;
+            attackStartPos = transform.position;
+            attackStartDir = transform.forward;
+            target = _target;
+            anim.SetBool("isAttacking", true);
+            CapsuleCollider collider = GetComponent<CapsuleCollider>();
+            RaycastHit attackCast;
+            Vector3 point1 = transform.position - new Vector3(0, collider.height / 2 + collider.radius, 0);
+            Vector3 point2 = transform.position + new Vector3(0, collider.height / 2 - collider.radius, 0);
+            if (Physics.CapsuleCast(point1, point2, collider.radius - 0.01f, attackStartDir, out attackCast, attackRange - collider.radius, 0b10000000, QueryTriggerInteraction.Ignore)) {
+                adjustedRange = attackCast.distance;
+            } else adjustedRange = attackRange;
+        }
     }
 
     public void InterruptAttack() {

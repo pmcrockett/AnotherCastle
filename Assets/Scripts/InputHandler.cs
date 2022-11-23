@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class InputHandler : MonoBehaviour
 {
@@ -14,10 +15,13 @@ public class InputHandler : MonoBehaviour
     public float airDrag = 0;
     public float climbSpeed = 2;
     public float rotateSpeed = 1000;
+    public float dialogInputCooldown = 0.25f;
     public float currentVelocity;
     public bool disableMoveImpulse = false;
     public bool isWallJumping = false;
     public bool isFalling = false;
+    public bool jumpEnabled = true;
+    public GameObject activeDialog = null;
     private Rigidbody body;
     private Animator anim;
     private SphereCollider jumpCollider;
@@ -38,7 +42,9 @@ public class InputHandler : MonoBehaviour
     private float climbLerp = 0;
     private Vector3 lastMoveInput = Vector3.zero;
     private Vector3 desiredForward = Vector3.zero;
-
+    private float lastDialogInput = -1;
+    TextMesh textMesh;
+    
     void Awake()
     {
         input = new PlayerInput();
@@ -67,29 +73,32 @@ public class InputHandler : MonoBehaviour
         lastJumpTime = Time.time;
         lastWallJumpTime = Time.time;
         lastUpdatePosition = transform.position;
-        Debug.Log("Player start position: " + transform.position);
     }
 
     // Update is called once per frame
     void Update()
     {
-        //if (!isFalling && lastMoveInput != Vector3.zero && !disableMoveImpulse) {
-        if (!isFalling && desiredForward != Vector3.zero && !disableMoveImpulse && climbLerp <= 0) {
-            //transform.rotation = Quaternion.LookRotation(lastMoveInput, Vector3.up);
-            //Quaternion idealRotation = Quaternion.LookRotation(lastMoveInput, Vector3.up);
-            Quaternion idealRotation = Quaternion.LookRotation(desiredForward, Vector3.up);
-            transform.rotation = Quaternion.RotateTowards(transform.rotation, idealRotation, rotateSpeed * Time.deltaTime);
-        } else if (isFalling && lastMoveInput != Vector3.zero) {
-            AirMovement();
+        if (activeDialog == null) {
+            //if (!isFalling && lastMoveInput != Vector3.zero && !disableMoveImpulse) {
+            if (!isFalling && desiredForward != Vector3.zero && !disableMoveImpulse && climbLerp <= 0) {
+                //transform.rotation = Quaternion.LookRotation(lastMoveInput, Vector3.up);
+                //Quaternion idealRotation = Quaternion.LookRotation(lastMoveInput, Vector3.up);
+                Quaternion idealRotation = Quaternion.LookRotation(desiredForward, Vector3.up);
+                transform.rotation = Quaternion.RotateTowards(transform.rotation, idealRotation, rotateSpeed * Time.deltaTime);
+            } else if (isFalling && lastMoveInput != Vector3.zero) {
+                AirMovement();
+            }
+            //forwared vector
+            Debug.DrawLine(transform.position, transform.position + transform.forward * 1.25f, Color.yellow, 0.2f);
+        } else {
+            Dialog();
         }
         if (climbLerp > 0) ContinueClimbEdge();
-        //forwared vector
-        Debug.DrawLine(transform.position, transform.position + transform.forward * 1.25f, Color.yellow, 0.2f);
     }
 
     void FixedUpdate()
     {
-        //UpdateWallCollisions();
+            //UpdateWallCollisions();
         currentMoveDirection = (transform.position - lastUpdatePosition).normalized;
         currentVelocity = Vector3.Distance(transform.position, lastUpdatePosition);
         Attack();
@@ -102,8 +111,10 @@ public class InputHandler : MonoBehaviour
     private void Movement()
     {
         float moveSpeed;
-        if (canJump) moveSpeed = walkSpeed;
-        else moveSpeed = airMovementSpeed;
+        if (activeDialog == null) {
+            if (canJump) moveSpeed = walkSpeed;
+            else moveSpeed = airMovementSpeed;
+        } else moveSpeed = 0;
         Vector2 moveInput = input.Player.Move.ReadValue<Vector2>() * moveSpeed * Time.deltaTime;
         //Debug.Log("moveInput: " + input.Player.Move.ReadValue<Vector2>());
         Vector3 flattenedForward = new Vector3(playerCamera.transform.forward.x, 0, playerCamera.transform.forward.z).normalized;
@@ -138,39 +149,41 @@ public class InputHandler : MonoBehaviour
             body.drag = airDrag;
             isFalling = true;
             anim.SetBool("isFalling", true);
-            if (CanEdgeGrab() && jumpInputHeld) {
+            if (CanEdgeGrab() && jumpInputHeld && jumpEnabled && activeDialog == null) {
                 StartClimbEdge();
             }
         }
-        
-        float jumpInput = input.Player.Jump.ReadValue<float>();
-      
-        if (jumpInput > 0 ) {
-            if (climbLerp <= 0 && !GetComponent<LiftGlove>().isLifting && !attack.isAttacking) {
-                if (canJump && !jumpInputHeld && !hookshot.isMoving) {
-                    body.AddForce(Vector3.up * jumpHeight);
-                    disableMoveImpulse = false;
-                    lastJumpTime = Time.time;
-                    anim.SetBool("jumpStart", true);
-                } else if (!canJump && !jumpInputHeld && Time.time - wallJumpWindowStart <= 0.25) {
-                    WallJump(wallJumpVector);
-                } else if (!canJump && !jumpInputHeld) {
-                    lastWallJumpTime = Time.time;
-                }
-            }
-            jumpInputHeld = true;
-        } else jumpInputHeld = false;
 
+        if (activeDialog == null && jumpEnabled) {
+            float jumpInput = input.Player.Jump.ReadValue<float>();
+            if (jumpInput > 0) {
+                if (climbLerp <= 0 && !GetComponent<LiftGlove>().isLifting && !attack.isAttacking) {
+                    if (canJump && !jumpInputHeld && !hookshot.isMoving) {
+                        body.AddForce(Vector3.up * jumpHeight);
+                        disableMoveImpulse = false;
+                        lastJumpTime = Time.time;
+                        anim.SetBool("jumpStart", true);
+                    } else if (!canJump && !jumpInputHeld && Time.time - wallJumpWindowStart <= 0.25) {
+                        WallJump(wallJumpVector);
+                    } else if (!canJump && !jumpInputHeld) {
+                        lastWallJumpTime = Time.time;
+                    }
+                }
+                jumpInputHeld = true;
+            } else jumpInputHeld = false;
+        }
     }
 
     private void Attack() {
-        float attackInput = input.Player.Attack.ReadValue<float>();
-        if (attackInput > 0 ) {
-            if (!attackInputHeld && !attack.isAttacking && !isFalling && climbLerp <= 0 && !disableMoveImpulse && !GetComponent<LiftGlove>().isLifting) {
-                attack.StartAttack(null);
-            }
-            attackInputHeld = true;
-        } else attackInputHeld = false;
+        if (activeDialog == null) {
+            float attackInput = input.Player.Attack.ReadValue<float>();
+            if (attackInput > 0) {
+                if (!attackInputHeld && !attack.isAttacking && !isFalling && climbLerp <= 0 && !disableMoveImpulse && !GetComponent<LiftGlove>().isLifting) {
+                    attack.StartAttack(null);
+                }
+                attackInputHeld = true;
+            } else attackInputHeld = false;
+        }
     }
 
     private bool CanClimbStairs() {
@@ -270,6 +283,28 @@ public class InputHandler : MonoBehaviour
         return lowCast && !highCast;
     }
 
+    private void Dialog() {
+        if (playerCamera.GetComponent<CameraBehavior>().activeDialog == null) playerCamera.GetComponent<CameraBehavior>().activeDialog = activeDialog;
+        if (lastDialogInput < 0) {
+            lastDialogInput = Time.time;
+        }
+        float dialogInput = input.Player.Attack.ReadValue<float>() > 0 ? 1 : input.Player.Jump.ReadValue<float>();
+        if (dialogInput > 0 && !jumpInputHeld) {
+            if (Time.time - lastDialogInput >= dialogInputCooldown) {
+                if (activeDialog.GetComponentInChildren<DialogBox>().DisplayNextDialog()) {
+                    lastDialogInput = Time.time;
+                } else {
+                    Object.Destroy(activeDialog);
+                    jumpInputHeld = false;
+                    lastDialogInput = -1;
+                    playerCamera.GetComponent<CameraBehavior>().activeDialog = null;
+                }
+            }
+            jumpInputHeld = true;
+        } else if (dialogInput <= 0 && jumpInputHeld) {
+            jumpInputHeld = false;
+        }
+    }
     private void OnCollisionEnter(Collision collision) {
         if (collision.gameObject.layer == 7 && !canJump && climbLerp <= 0) {
             disableMoveImpulse = true;
@@ -282,7 +317,7 @@ public class InputHandler : MonoBehaviour
                 Vector3 reboundDir;
                 //wallJumpVector = new Vector3(currentMoveDirection.x * -1, Mathf.Clamp(currentMoveDirection.y * 12, 0.75f, 8), currentMoveDirection.z * -1).normalized;
                 wallJumpVector = new Vector3(wallCast.normal.x, Mathf.Clamp(currentMoveDirection.y * 12, 0.75f, 2), wallCast.normal.z).normalized;
-                if (Time.time - lastWallJumpTime <= 0.25 && !canJump && !GetComponent<LiftGlove>().isLifting) {
+                if (Time.time - lastWallJumpTime <= 0.25 && jumpEnabled && !canJump && !GetComponent<LiftGlove>().isLifting && activeDialog == null) {
                     WallJump(wallJumpVector);
                 } else {
                     wallJumpWindowStart = Time.time;

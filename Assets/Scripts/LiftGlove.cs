@@ -5,6 +5,7 @@ using UnityEngine;
 public class LiftGlove : MonoBehaviour
 {
     public PlayerInput input;
+    public bool isEnabled = false;
     public bool isLifting = false;
     public bool isThrowFrame = false;
     public GameObject liftObj;
@@ -31,15 +32,17 @@ public class LiftGlove : MonoBehaviour
 
     // Update is called once per frame
     void Update() {
-        Throw();
-        Lift();
-        isThrowFrame = false;
+        if (isEnabled) {
+            Throw();
+            Lift();
+            isThrowFrame = false;
+        }
     }
     void FixedUpdate() {
 
     }
     private void Lift() {
-        float liftInput = input.Player.Lift.ReadValue<float>();
+        float liftInput = input.Player.Interact.ReadValue<float>();
         RaycastHit liftHit = new RaycastHit();
         if (liftInput > 0
             && Physics.Raycast(transform.position, transform.forward, out liftHit, 2, 0b10000000, QueryTriggerInteraction.Ignore)
@@ -68,7 +71,7 @@ public class LiftGlove : MonoBehaviour
         }
     }
     private void Throw() {
-        float liftInput = input.Player.Lift.ReadValue<float>();
+        float liftInput = input.Player.Interact.ReadValue<float>();
         if (isLifting && liftInput > 0 && CooldownIsUp() && !inputHeld && liftObj.GetComponent<LiftTarget>().liftLerp >= 1) {
             isLifting = false;
             Vector3 throwDirection = (Quaternion.AngleAxis(liftObj.GetComponent<LiftTarget>().throwAngle * -1, transform.right) * transform.forward).normalized;

@@ -16,6 +16,7 @@ public class CameraBehavior : MonoBehaviour {
     public float blockAdjustSpeed = 0.1f;
     public bool invertX = false;
     public bool invertY = false;
+    public GameObject activeDialog = null;
     private Vector3 idealCameraPosition;
     private Vector3 idealCameraForward;
     private Vector3 oldCameraAngle;
@@ -63,22 +64,26 @@ public class CameraBehavior : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
-        Move();
-        MoveSightSpheres();
+        if (cameraTarget != null) {
+            Move();
+            MoveSightSpheres();
+        }
         //Debug.DrawLine(new Vector3(0, 0, 0), cameraTarget.transform.position, Color.red);
     }
 
     private void Move() {
         float aimInput = input.Player.Aim.ReadValue<float>();
         Vector2 camInput;
-        if (aimInput <= 0.25) {
-            camInput = input.Player.Look.ReadValue<Vector2>() * cameraSpeed;
-            resetHookshotAim = true;
-        } else {
-            camInput = new Vector2(0, 0);
-            AimHookshot();
-            resetHookshotAim = false;
-        }
+        if (activeDialog == null) {
+            if (aimInput <= 0.25 || !cameraTarget.GetComponent<Hookshot>().isEnabled) {
+                camInput = input.Player.Look.ReadValue<Vector2>() * cameraSpeed;
+                resetHookshotAim = true;
+            } else {
+                camInput = new Vector2(0, 0);
+                AimHookshot();
+                resetHookshotAim = false;
+            }
+        } else camInput = Vector2.zero;
         if (invertX) camInput[0] *= -1;
         if (invertY) camInput[1] *= -1;
         if (debugLerp) {
@@ -169,6 +174,18 @@ public class CameraBehavior : MonoBehaviour {
         cameraTarget.GetComponent<GhostEffect>().isGhost = true;
         //hookshot.aimTarget = gameObject.GetComponent<Camera>().ScreenToWorldPoint(new Vector3(camInput[0] * Screen.currentResolution.width, camInput[1] * Screen.currentResolution.height, cameraTarget.GetComponent<Hookshot>().hookshotLength));
         Debug.DrawLine(cameraTarget.transform.position, hookshot.aimTarget, Color.yellow);
+    }
+
+    public void Respawn(Checkpoint _checkpoint) {
+        if (_checkpoint != null) {
+            transform.position = (Quaternion.AngleAxis(135, _checkpoint.transform.right) * _checkpoint.transform.forward * -1 * cameraDistance) + _checkpoint.transform.position;
+        } else {
+            transform.position = Vector3.zero;
+        }
+        transform.LookAt(cameraTarget.transform);
+        idealCameraPosition = transform.position;
+        idealCameraForward = (cameraTarget.transform.position - idealCameraPosition).normalized;
+        oldCameraAngle = (transform.position - cameraTarget.transform.position).normalized;
     }
 
     private void ActivateSightSpheres() {

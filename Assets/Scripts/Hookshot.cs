@@ -8,6 +8,7 @@ public class Hookshot : MonoBehaviour
     public float hookshotLength = 20;
     public float reelSpeed = 4;
     public float aimSpeedDenominator = 10;
+    public bool isEnabled = false;
     public PlayerInput input;
     public bool isMoving = false;
     public Vector3 aimTarget;
@@ -41,16 +42,18 @@ public class Hookshot : MonoBehaviour
     }
 
     void FixedUpdate() {
-        fire();
+        if (isEnabled) {
+            fire();
 
-        if (isMoving) {
-            lerpVal += reelSpeed * Time.deltaTime;
-            if (lerpVal >= 1) {
-                lerpVal = 0;
-                isMoving = false;
-            } else {
-                transform.position = Vector3.Lerp(startPosition, moveTarget, lerpVal);
-                GetComponent<Rigidbody>().velocity = new Vector3(0, 0, 0);
+            if (isMoving) {
+                lerpVal += reelSpeed * Time.deltaTime;
+                if (lerpVal >= 1) {
+                    lerpVal = 0;
+                    isMoving = false;
+                } else {
+                    transform.position = Vector3.Lerp(startPosition, moveTarget, lerpVal);
+                    GetComponent<Rigidbody>().velocity = new Vector3(0, 0, 0);
+                }
             }
         }
     }
