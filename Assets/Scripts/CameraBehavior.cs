@@ -84,8 +84,10 @@ public class CameraBehavior : MonoBehaviour {
                 resetHookshotAim = false;
             }
         } else camInput = Vector2.zero;
-        if (invertX) camInput[0] *= -1;
-        if (invertY) camInput[1] *= -1;
+        //if (invertX) camInput[0] *= -1;
+        //if (invertY) camInput[1] *= -1;
+        if (Controls.Axis.InvertCameraX) camInput[0] *= -1;
+        if (Controls.Axis.InvertCameraY) camInput[1] *= -1;
         if (debugLerp) {
             camInput = input.Player.Look.ReadValue<Vector2>();
             transform.position = GetLerpPosition(Mathf.Clamp(camInput[1], 0, 1));
@@ -164,8 +166,8 @@ public class CameraBehavior : MonoBehaviour {
             hookshot.aimTarget = gameObject.GetComponent<Camera>().ScreenToWorldPoint(new Vector3(hookshotXY[0], hookshotXY[1], cameraTarget.GetComponent<Hookshot>().hookshotLength));
         }
         Vector2 camInput = input.Player.Look.ReadValue<Vector2>();
-        if (invertX) camInput[0] *= -1;
-        if (invertY) camInput[1] *= -1;
+        if (Controls.Axis.InvertAimX) camInput[0] *= -1;
+        if (Controls.Axis.InvertAimY) camInput[1] *= -1;
         //camInput[0] = (camInput[0] + 1) / 2;
         //camInput[1] = (camInput[1] + 1) / 2;
         hookshotXY[0] = Mathf.Clamp(hookshotXY[0] + camInput[0] * Time.deltaTime * Screen.currentResolution.width / hookshot.aimSpeedDenominator, 0, Screen.currentResolution.width);
