@@ -59,6 +59,5 @@ public class GhostEffect : MonoBehaviour {
             color.a = _alpha;
             x.material.color = color;
         }
-        Debug.Log("Alpha is now " + _alpha);
     }
 }

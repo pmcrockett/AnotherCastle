@@ -26,11 +26,10 @@ public class LiftTarget : MonoBehaviour
         if (isLifted) {
             transform.position = Vector3.Lerp(lifter.transform.position + liftStartPos, lifter.transform.position + liftPosition, liftLerp);
             if (liftLerp < 1) liftLerp += Time.deltaTime * liftSpeed;
-            else if (lifter.GetComponent<InputHandler>().disableMoveImpulse == true) lifter.GetComponent<InputHandler>().disableMoveImpulse = false;
+            else if (lifter.GetComponent<InputHandler>()!= null && lifter.GetComponent<InputHandler>().disableMoveImpulse == true) lifter.GetComponent<InputHandler>().disableMoveImpulse = false;
             rotationDelta = Quaternion.FromToRotation(lifterOldForward, lifter.transform.forward);
             transform.forward = rotationDelta * transform.forward;
             lifterOldForward = lifter.transform.forward;
-            Debug.Log("Rotation  delta: " + rotationDelta.eulerAngles);
         }
     }
     private void FixedUpdate() {
@@ -53,7 +52,7 @@ public class LiftTarget : MonoBehaviour
         GetComponent<Collider>().isTrigger = true;
         GetComponent<Rigidbody>().isKinematic = true;
         liftStartPos = transform.position - lifter.transform.position;
-        lifter.GetComponent<InputHandler>().disableMoveImpulse = true;
+        if (lifter.GetComponent<InputHandler>() != null) lifter.GetComponent<InputHandler>().disableMoveImpulse = true;
         lifter.GetComponent<Rigidbody>().velocity = Vector3.zero;
         lifterOldForward = lifter.transform.forward;
     }

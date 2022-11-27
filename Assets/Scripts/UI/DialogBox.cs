@@ -31,6 +31,11 @@ public class DialogBox : MonoBehaviour
                 ActivateCamera(activeIdx);
             }
             GetComponent<TextMeshProUGUI>().text = Util.FixNewline(dialog[activeIdx]);
+            if (activeIdx < dialog.Count - 1) {
+                transform.parent.Find("DialogMore").GetComponent<TextMeshProUGUI>().text = "(more)";
+            } else {
+                transform.parent.Find("DialogMore").GetComponent<TextMeshProUGUI>().text = "(end)";
+            }
             return true;
         } else return false;
     }

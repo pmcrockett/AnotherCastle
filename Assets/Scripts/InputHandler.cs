@@ -98,7 +98,6 @@ public class InputHandler : MonoBehaviour
 
     void FixedUpdate()
     {
-            //UpdateWallCollisions();
         currentMoveDirection = (transform.position - lastUpdatePosition).normalized;
         currentVelocity = Vector3.Distance(transform.position, lastUpdatePosition);
         Attack();

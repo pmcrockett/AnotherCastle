@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using Unity.VectorGraphics;
 
 public class Util
 {
@@ -57,6 +58,8 @@ public class Util
 		GameObject textObj = new GameObject();
 		TextMeshProUGUI text = textObj.AddComponent<TextMeshProUGUI>();
 		DialogBox dialogBox = textObj.AddComponent<DialogBox>();
+		GameObject moreObj = new GameObject();
+		TextMeshProUGUI moreText = moreObj.AddComponent<TextMeshProUGUI>();
 
 		box.transform.SetParent(_canvas.transform);
 		box.GetComponent<Image>().color = new Color(0, 0, 0, 0.75f);
@@ -79,6 +82,16 @@ public class Util
 		text.rectTransform.offsetMax = new Vector2(_leftRightPad * -1, _topBottomPad * -1);
 		text.rectTransform.offsetMin = new Vector2(_leftRightPad, _topBottomPad);
 		textObj.name = "DialogText";
+
+		moreObj.transform.SetParent(box.transform, false);
+		moreText.rectTransform.anchoredPosition = Vector3.zero;
+		moreText.rectTransform.pivot = new Vector2(1, 0);
+		moreText.rectTransform.anchorMin = new Vector2(1, 0);
+		moreText.rectTransform.anchorMax = new Vector2(1, 0);
+		moreText.rectTransform.sizeDelta = new Vector2(200, 40);
+		moreText.GetComponent<TextMeshProUGUI>().horizontalAlignment = HorizontalAlignmentOptions.Right;
+		moreText.rectTransform.anchoredPosition = new Vector3(_leftRightPad * -1, _topBottomPad, 0);
+		moreObj.name = "DialogMore";
 
 		dialogBox.DisplayNextDialog();
 

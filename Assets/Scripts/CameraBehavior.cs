@@ -133,7 +133,7 @@ public class CameraBehavior : MonoBehaviour {
         float traceDistance = Vector3.Distance(traceStart, (directionToCamera * cameraDistance) + traceStart);
         RaycastHit[] cameraSight = Physics.SphereCastAll(traceStart, innerCameraTraceRadius, directionToCamera, traceDistance, 0b10000000, QueryTriggerInteraction.Ignore);
         foreach (RaycastHit x in cameraSight) {
-            Debug.Log("Camera sight: " + x.collider.gameObject.name);
+            //Debug.Log("Camera sight: " + x.collider.gameObject.name);
             if (x.collider.gameObject.GetComponent<NoCameraCollision>() == null
             && !(x.collider.gameObject.GetComponent<LiftTarget>()
             && (x.collider.gameObject.layer == 6 && !Util.IsGrounded(x.collider.gameObject, (Util.GetColliderWidth(x.collider.gameObject) - 0.02f) / 2)))) {
