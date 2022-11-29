@@ -306,6 +306,7 @@ GameObject:
   - component: {fileID: -3895716029109501503}
   - component: {fileID: 6397053662391407633}
   - component: {fileID: 599251585669955570}
+  - component: {fileID: 6593641073983490580}
   m_Layer: 6
   m_Name: Princess
   m_TagString: Untagged
@@ -406,6 +407,7 @@ MonoBehaviour:
   disableMoveImpulse: 0
   isWallJumping: 0
   isFalling: 0
+  jumpEnabled: 1
   activeDialog: {fileID: 0}
 --- !u!114 &-1622331464650955227
 MonoBehaviour:
@@ -501,6 +503,10 @@ MonoBehaviour:
       m_Calls: []
     m_ActionId: 403b0e53-e3fd-467a-809a-1394b53e85ce
     m_ActionName: Player/Hookshot[/XInputControllerWindows/leftShoulder]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 241d8cdd-2baa-4947-824d-df471a4a3d00
+    m_ActionName: Player/Pause[/XInputControllerWindows/start,/Keyboard/escape]
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Player
@@ -519,9 +525,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerCam: {fileID: 0}
+  target: {fileID: 0}
+  yesMat: {fileID: 0}
+  noMat: {fileID: 0}
+  point: {fileID: 0}
+  chain: {fileID: 0}
   hookshotLength: 45
   reelSpeed: 4
   aimSpeedDenominator: 2
+  isAiming: 0
+  isEnabled: 0
   isMoving: 0
   aimTarget: {x: 0, y: 0, z: 0}
 --- !u!114 &-6219970122156187192
@@ -536,6 +549,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 59bd1fc153dde62488e531e18f0adfc1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  isEnabled: 0
   isLifting: 0
   isThrowFrame: 0
   liftObj: {fileID: 0}
@@ -563,10 +577,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cff15398d3ac8a34dbed8965f14a5b84, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  isPlayer: 1
+  attackStrength: 1
   attackRange: 1
   attackSpeed: 5
   attackForce: 175
   forceAngle: 45
+  sword: {fileID: 4671896024736092384, guid: 9ff2bc4c42b5d1649bca77bf8c855351, type: 3}
+  isEnabled: 0
   isAttacking: 0
   isReturning: 0
 --- !u!114 &599251585669955570
@@ -584,6 +602,21 @@ MonoBehaviour:
   fadeSpeed: 1
   isGhost: 0
   isTransparent: 0
+--- !u!114 &6593641073983490580
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7721680575744541438}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aff479c31d5001f40abb0d7af1c38bf7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  health: 3
+  isPlayer: 1
+  display: {fileID: 0}
 --- !u!1 &8257060645891226783
 GameObject:
   m_ObjectHideFlags: 0

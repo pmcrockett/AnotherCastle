@@ -16,6 +16,11 @@ public class SightPerception : MonoBehaviour {
     private Vector3 sightOrigin;
     private Vector3 castStartDir;
     private GameObject oldTarget;
+    private Health health;
+
+    private void Awake() {
+        health = GetComponent<Health>();
+    }
     // Start is called before the first frame update
     void Start() {
         if (target != null) {
@@ -30,7 +35,8 @@ public class SightPerception : MonoBehaviour {
             Init();
             oldTarget = target;
         }
-        if (isActive && target != null) ScanForTarget(target);
+        if (health.health <= 0) target = null;
+        else if (isActive && target != null) ScanForTarget(target);
     }
 
     private void Init() {

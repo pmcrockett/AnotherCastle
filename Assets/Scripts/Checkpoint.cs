@@ -4,12 +4,8 @@ using UnityEngine;
 
 public class Checkpoint : MonoBehaviour
 {
-    public GameState gameState;
-    private GameObject triggeringObject;
+    public GameObject triggeringObject;
 
-    private void Awake() {
-        triggeringObject = gameState.playerObj;
-    }
     // Start is called before the first frame update
     void Start()
     {
@@ -24,7 +20,7 @@ public class Checkpoint : MonoBehaviour
 
     private void OnTriggerEnter(Collider other) {
         if (other.gameObject == triggeringObject) {
-            gameState.currentCheckpoint = this;
+            Game.PlayerState.Checkpoint = this.name;
         }
     }
 }

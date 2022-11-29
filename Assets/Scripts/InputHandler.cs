@@ -93,6 +93,7 @@ public class InputHandler : MonoBehaviour
         } else {
             Dialog();
         }
+        Attack();
         if (climbLerp > 0) ContinueClimbEdge();
     }
 
@@ -100,7 +101,6 @@ public class InputHandler : MonoBehaviour
     {
         currentMoveDirection = (transform.position - lastUpdatePosition).normalized;
         currentVelocity = Vector3.Distance(transform.position, lastUpdatePosition);
-        Attack();
         Jump();
         Movement();
         ClimbStairs();
@@ -114,24 +114,42 @@ public class InputHandler : MonoBehaviour
             if (canJump) moveSpeed = walkSpeed;
             else moveSpeed = airMovementSpeed;
         } else moveSpeed = 0;
-        Vector2 moveInput = input.Player.Move.ReadValue<Vector2>() * moveSpeed * Time.deltaTime;
+        Vector2 moveInput = input.Player.Move.ReadValue<Vector2>();
+        moveInput *= moveSpeed * Time.deltaTime;
         //Debug.Log("moveInput: " + input.Player.Move.ReadValue<Vector2>());
         Vector3 flattenedForward = new Vector3(playerCamera.transform.forward.x, 0, playerCamera.transform.forward.z).normalized;
         Vector3 flattenedRight = new Vector3(playerCamera.transform.right.x, 0, playerCamera.transform.right.z).normalized;
         Vector3 moveForce = flattenedForward * moveInput.y + flattenedRight * moveInput.x;
         //if (!disableMoveImpulse && !hookshot.isMoving && climbLerp <= 0) body.AddForce(moveForce);
-        if (!disableMoveImpulse && !hookshot.isMoving && climbLerp <= 0 ) {
+        if (!disableMoveImpulse && !hookshot.isMoving && climbLerp <= 0 && !attack.isAttacking) {
             if ((!isFalling && Vector3.Dot(transform.forward, moveForce.normalized) >= 0.8) || isFalling) {
-                body.AddForce(transform.forward * moveForce.magnitude);
+                RaycastHit wallHit = DetectWall();
+                if (wallHit.collider == null) {
+                    body.AddForce(transform.forward * moveForce.magnitude);
+                } else if (Vector3.Dot(Util.FlattenVectorOnY(wallHit.normal), transform.forward) > -0.8) {
+                //} else {
+                    Debug.Log("WallDetected");
+                    Vector3 newForward = (Vector3.Dot(Quaternion.Euler(0, 90, 0) * wallHit.normal, transform.forward) > 0 ? Quaternion.Euler(0, 90, 0) * wallHit.normal : Quaternion.Euler(0, -90, 0) * wallHit.normal);
+                    body.AddForce(newForward * moveForce.magnitude);
+                }
             }
         }
-        lastMoveInput = moveForce / (moveSpeed * Time.deltaTime);
+        lastMoveInput = (moveSpeed == 0 ? Vector3.zero : moveForce / (moveSpeed * Time.deltaTime));
         if ((lastMoveInput != Vector3.zero && !isFalling) || isFalling) desiredForward = lastMoveInput;
         if (body.velocity.magnitude > 0 && !isFalling) {
             anim.SetFloat("walkSpeed", body.velocity.magnitude / 7);
         } else {
             anim.SetFloat("walkSpeed", 0);
         }
+        //Debug.Log(desiredForward);
+    }
+
+    private RaycastHit DetectWall() {
+        Vector3 capsuleStart = new Vector3(transform.position.x, transform.position.y - (GetComponent<CapsuleCollider>().height / 2 + GetComponent<CapsuleCollider>().radius) + GetComponent<CapsuleCollider>().height / 3.5f, transform.position.z) + transform.forward * -0.01f;
+        Vector3 capsuleEnd = new Vector3(transform.position.x, transform.position.y + (GetComponent<CapsuleCollider>().height / 2 - GetComponent<CapsuleCollider>().radius), transform.position.z) + transform.forward * -0.01f;
+        RaycastHit wallHit;
+        Physics.CapsuleCast(capsuleStart, capsuleEnd, GetComponent<CapsuleCollider>().radius, transform.forward, out wallHit, 0.1f, 0b10000000, QueryTriggerInteraction.Ignore);
+        return wallHit;
     }
 
     private void Jump()
@@ -174,15 +192,21 @@ public class InputHandler : MonoBehaviour
     }
 
     private void Attack() {
-        if (activeDialog == null) {
+        //if (activeDialog == null) {
             float attackInput = input.Player.Attack.ReadValue<float>();
             if (attackInput > 0) {
-                if (!attackInputHeld && !attack.isAttacking && !isFalling && climbLerp <= 0 && !disableMoveImpulse && !GetComponent<LiftGlove>().isLifting) {
+                if (!attackInputHeld 
+                    && !attack.isAttacking 
+                    && !isFalling 
+                    && climbLerp <= 0 
+                    && !disableMoveImpulse 
+                    && !GetComponent<LiftGlove>().isLifting
+                    && (!hookshot.isEnabled || !hookshot.isAiming)) {
                     attack.StartAttack(null);
                 }
                 attackInputHeld = true;
             } else attackInputHeld = false;
-        }
+        //}
     }
 
     private bool CanClimbStairs() {
@@ -287,21 +311,21 @@ public class InputHandler : MonoBehaviour
         if (lastDialogInput < 0) {
             lastDialogInput = Time.time;
         }
-        float dialogInput = input.Player.Attack.ReadValue<float>() > 0 ? 1 : input.Player.Jump.ReadValue<float>();
-        if (dialogInput > 0 && !jumpInputHeld) {
+        float dialogInput = input.Player.Attack.ReadValue<float>();
+        if (dialogInput > 0 && !attackInputHeld) {
             if (Time.time - lastDialogInput >= dialogInputCooldown) {
                 if (activeDialog.GetComponentInChildren<DialogBox>().DisplayNextDialog()) {
                     lastDialogInput = Time.time;
                 } else {
                     Object.Destroy(activeDialog);
-                    jumpInputHeld = false;
+                    //attackInputHeld = false;
                     lastDialogInput = -1;
                     playerCamera.GetComponent<CameraBehavior>().activeDialog = null;
                 }
             }
-            jumpInputHeld = true;
-        } else if (dialogInput <= 0 && jumpInputHeld) {
-            jumpInputHeld = false;
+            //attackInputHeld = true;
+        } else if (dialogInput <= 0 && attackInputHeld) {
+            //attackInputHeld = false;
         }
     }
     private void OnCollisionEnter(Collision collision) {
@@ -341,7 +365,7 @@ public class InputHandler : MonoBehaviour
     
     private void OnTriggerEnter(Collider other) {
         if (hookshot.isMoving) {
-            hookshot.isMoving = false;
+            hookshot.Interrupt();
         }
     }
 }

@@ -6,9 +6,11 @@ public class AttackAI : MonoBehaviour
 {
     private ChaseAI movement;
     private Attack attack;
+    private Health health;
     // Start is called before the first frame update
     void Start()
     {
+        health = GetComponent<Health>();
         movement = GetComponent<ChaseAI>();
         attack = GetComponent<Attack>();
         attack.isEnabled = true;
@@ -17,10 +19,13 @@ public class AttackAI : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (movement.target != null && movement.target.GetComponent<InputHandler>().activeDialog == null) {
-            if (movement.isInTargetRange && !attack.isAttacking) {
-                attack.StartAttack(movement.target);
-            }
-        } else if (attack.isAttacking) attack.InterruptAttack();
+        if (health.health > 0) {
+            if (movement.target != null && movement.target.GetComponent<InputHandler>().activeDialog == null
+                && (movement.target.GetComponent<Health>() == null || movement.target.GetComponent<Health>().health > 0)) {
+                if (movement.isInTargetRange && !attack.isAttacking) {
+                    attack.StartAttack(movement.target);
+                }
+            } else if (attack.isAttacking) attack.InterruptAttack();
+        }
     }
 }

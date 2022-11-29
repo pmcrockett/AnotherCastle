@@ -14,9 +14,11 @@ public class ChaseAI : MonoBehaviour {
     private Vector3 lastPosition;
     private SightPerception sight;
     private Animator anim;
+    private Health health;
 
     void Awake() {
         anim = GetComponent<Animator>();
+        health = GetComponent<Health>();
     }
 
     // Start is called before the first frame update
@@ -30,9 +32,9 @@ public class ChaseAI : MonoBehaviour {
         magnitude = Vector3.Distance(transform.position, lastPosition) * Time.deltaTime;
         lastPosition = transform.position;
         isInTargetRange = false;
-        if (sight.targetInSight) {
+        if (sight.targetInSight && (sight.target.GetComponent<Health>() == null || sight.target.GetComponent<Health>().health > 0)
+            && health.health > 0) {
             if (sight.target != null && target != sight.target) {
-                target = sight.target;
                 Init();
             }
             //if (GetComponent<Rigidbody>().velocity.magnitude < 0.01) {
@@ -42,12 +44,12 @@ public class ChaseAI : MonoBehaviour {
                 if (targetDist > closestDist + desiredDistanceThreshold) {
                     transform.position = Vector3.MoveTowards(transform.position, target.transform.position, moveSpeed * Time.deltaTime);
                     anim.SetFloat("walkSpeed", moveSpeed / 4);
-                    Debug.Log("walkSpeed: " + moveSpeed / 4);
+                    //Debug.Log("walkSpeed: " + moveSpeed / 4);
                 } else if (targetDist <= closestDist - desiredDistanceThreshold) {
                     Vector3 targetPos = target.transform.position + (transform.position - target.transform.position).normalized * (closestDist);
                     transform.position = Vector3.MoveTowards(transform.position, targetPos, moveSpeed * Time.deltaTime);
                     anim.SetFloat("walkSpeed", moveSpeed / 4);
-                    Debug.Log("walkSpeed: " + moveSpeed / 4);
+                    //Debug.Log("walkSpeed: " + moveSpeed / 4);
                 } else {
                     isInTargetRange = true;
                     anim.SetFloat("walkSpeed", 0);
@@ -61,6 +63,7 @@ public class ChaseAI : MonoBehaviour {
     }
 
     private void Init() {
+        target = sight.target;
         closestDist = GetComponent<CapsuleCollider>().radius + target.GetComponent<CapsuleCollider>().radius + desiredDistance;
     }
 }

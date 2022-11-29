@@ -23,9 +23,9 @@ public class CameraBehavior : MonoBehaviour {
     private Vector3 outerHitPosition;
     private bool cameraIsLerping = false;
     private bool sightSpheresActive = false;
-    private bool resetHookshotAim = true;
     private float[] hookshotXY = new float[2];
     private float blockStart = -1;
+    private Hookshot hookshot;
     List<GameObject> cameraSpheres = new List<GameObject>();
 
     void Awake()
@@ -49,6 +49,7 @@ public class CameraBehavior : MonoBehaviour {
         //Move();
         oldCameraAngle = (transform.position - cameraTarget.transform.position).normalized;
         Vector3 directionToCamera = (transform.position - cameraTarget.transform.position).normalized;
+        hookshot = cameraTarget.GetComponent<Hookshot>();
         for (float i = 1; (outerCameraTraceRadius > 0 ? i * outerCameraTraceRadius : i) < cameraDistance; i++) {
             GameObject newSphere = Instantiate(cameraSightCollider, i * outerCameraTraceRadius * transform.forward * -1 + cameraTarget.transform.position, Quaternion.identity);
             SphereCollider newCollider = newSphere.GetComponent<SphereCollider>();
@@ -77,17 +78,16 @@ public class CameraBehavior : MonoBehaviour {
         if (activeDialog == null) {
             if (aimInput <= 0.25 || !cameraTarget.GetComponent<Hookshot>().isEnabled) {
                 camInput = input.Player.Look.ReadValue<Vector2>() * cameraSpeed;
-                resetHookshotAim = true;
+                hookshot.isAiming = false;
             } else {
                 camInput = new Vector2(0, 0);
                 AimHookshot();
-                resetHookshotAim = false;
             }
         } else camInput = Vector2.zero;
         //if (invertX) camInput[0] *= -1;
         //if (invertY) camInput[1] *= -1;
-        if (Controls.Axis.InvertCameraX) camInput[0] *= -1;
-        if (Controls.Axis.InvertCameraY) camInput[1] *= -1;
+        if (Game.Axis.InvertCameraX) camInput[0] *= -1;
+        if (Game.Axis.InvertCameraY) camInput[1] *= -1;
         if (debugLerp) {
             camInput = input.Player.Look.ReadValue<Vector2>();
             transform.position = GetLerpPosition(Mathf.Clamp(camInput[1], 0, 1));
@@ -159,15 +159,15 @@ public class CameraBehavior : MonoBehaviour {
         return idealCameraPosition;
     }
     private void AimHookshot() {
-        Hookshot hookshot = cameraTarget.GetComponent<Hookshot>();
-        if (resetHookshotAim) {
+        if (!hookshot.isAiming) {
+            hookshot.isAiming = true;
             hookshotXY[0] = Screen.currentResolution.width / 2;
             hookshotXY[1] = Screen.currentResolution.height / 2;
             hookshot.aimTarget = gameObject.GetComponent<Camera>().ScreenToWorldPoint(new Vector3(hookshotXY[0], hookshotXY[1], cameraTarget.GetComponent<Hookshot>().hookshotLength));
         }
         Vector2 camInput = input.Player.Look.ReadValue<Vector2>();
-        if (Controls.Axis.InvertAimX) camInput[0] *= -1;
-        if (Controls.Axis.InvertAimY) camInput[1] *= -1;
+        if (Game.Axis.InvertAimX) camInput[0] *= -1;
+        if (Game.Axis.InvertAimY) camInput[1] *= -1;
         //camInput[0] = (camInput[0] + 1) / 2;
         //camInput[1] = (camInput[1] + 1) / 2;
         hookshotXY[0] = Mathf.Clamp(hookshotXY[0] + camInput[0] * Time.deltaTime * Screen.currentResolution.width / hookshot.aimSpeedDenominator, 0, Screen.currentResolution.width);

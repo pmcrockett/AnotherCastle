@@ -9,6 +9,7 @@ public class Switch : MonoBehaviour
     public Vector3 switchTargetTriggeredRotation;
     public float triggerSpeed = 5;
     public float targetMoveSpeed = 2;
+    public bool permanentTrigger = false;
     public bool isTriggered = false;
     private Vector3 switchTargetInitialPosition;
     private Quaternion switchTargetInitialQuat;
@@ -61,12 +62,14 @@ public class Switch : MonoBehaviour
     }
 
     private void OnTriggerEnter(Collider other) {
-        isTriggered = true;
-        triggerList.Add(other.gameObject);
+        if (other.GetComponent<SwitchTrigger>() != null) {
+            isTriggered = true;
+            triggerList.Add(other.gameObject);
+        }
     }
     private void OnTriggerExit(Collider other) {
         triggerList.Remove(other.gameObject);
-        if (triggerList.Count <= 0) {
+        if (triggerList.Count <= 0 && !permanentTrigger) {
             isTriggered = false;
         }
     }

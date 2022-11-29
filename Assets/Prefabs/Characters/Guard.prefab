@@ -179,6 +179,7 @@ GameObject:
   - component: {fileID: 6491902268561021707}
   - component: {fileID: 8843180931834184689}
   - component: {fileID: -3007114764923566506}
+  - component: {fileID: 8803048581036812572}
   m_Layer: 6
   m_Name: Guard
   m_TagString: Untagged
@@ -295,10 +296,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cff15398d3ac8a34dbed8965f14a5b84, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  attackStrength: 1
   attackRange: 1
-  attackSpeed: 40
-  attackForce: 5
+  attackSpeed: 5
+  attackForce: 175
   forceAngle: 45
+  sword: {fileID: 4671896024736092384, guid: 9ff2bc4c42b5d1649bca77bf8c855351, type: 3}
+  isEnabled: 0
   isAttacking: 0
   isReturning: 0
 --- !u!114 &8843180931834184689
@@ -333,6 +337,21 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
+--- !u!114 &8803048581036812572
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5574857554095975646}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aff479c31d5001f40abb0d7af1c38bf7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  health: 3
+  isPlayer: 0
+  display: {fileID: 0}
 --- !u!1 &5777669117193887050
 GameObject:
   m_ObjectHideFlags: 0

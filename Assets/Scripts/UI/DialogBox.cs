@@ -32,9 +32,9 @@ public class DialogBox : MonoBehaviour
             }
             GetComponent<TextMeshProUGUI>().text = Util.FixNewline(dialog[activeIdx]);
             if (activeIdx < dialog.Count - 1) {
-                transform.parent.Find("DialogMore").GetComponent<TextMeshProUGUI>().text = "(more)";
+                transform.parent.Find("DialogMore").GetComponent<TextMeshProUGUI>().text = "(Attack button: more)";
             } else {
-                transform.parent.Find("DialogMore").GetComponent<TextMeshProUGUI>().text = "(end)";
+                transform.parent.Find("DialogMore").GetComponent<TextMeshProUGUI>().text = "(End)";
             }
             return true;
         } else return false;

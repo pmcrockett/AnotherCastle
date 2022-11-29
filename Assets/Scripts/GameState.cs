@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using TMPro;
@@ -12,14 +13,19 @@ public class GameState : MonoBehaviour
     public GameObject playerObj;
     public Camera mainCamera;
     public Canvas uiCanvas;
+    public GameObject gameOverScreen;
+    public GameObject pauseScreen;
     public Checkpoint currentCheckpoint;
     public GameObject error;
     public float errorTimer;
     public GameObject introWizard;
     public GameObject introPrincess;
     public GameObject nameInput;
-    public string heroName;
     public GameObject hero;
+    public bool isPaused = false;
+    public bool isDying = false;
+    private GameObject gameOverScreenInstance;
+    private GameObject pauseScreenInstance;
     private delegate IntroStep IntroStep();
     private Camera introCam = null;
     private float introTimer;
@@ -27,8 +33,11 @@ public class GameState : MonoBehaviour
     private PlayerInput input;
     private float introInput = 0;
     private bool introInputHeld = false;
+    private float pauseInput = 0;
+    private bool pauseInputHeld = false;
     private float lastTextInputTime = -1;
     private float camGlitchSpeed = 0.6f;
+    private float deathTimer = -1;
 
     IntroStep introStep;
 
@@ -37,13 +46,70 @@ public class GameState : MonoBehaviour
     }
     // Start is called before the first frame update
     void Start() {
-        playerObj.GetComponent<InputHandler>().enabled = false;
-        mainCamera.enabled = false;
-        introStep = GetIntroStep(1);
-        introPrincess.GetComponent<LiftTarget>().StartLift(introWizard);
-        introPrincess.GetComponent<Animator>().SetBool("isLifted", true);
-        introWizard.GetComponent<Animator>().SetBool("liftStart", true);
-        introWizard.GetComponent<Animator>().SetFloat("liftSpeed", introPrincess.GetComponent<LiftTarget>().liftSpeed);
+        // Debug
+        if (Game.PlayerState.Deaths <= 0) {
+            Game.PlayerState.PlayIntro = false;
+            Game.PlayerState.Checkpoint = null;
+            Game.Axis.InvertCameraX = true;
+            Game.Axis.InvertCameraY = true;
+            Game.Axis.InvertAimX = true;
+            Game.Axis.InvertAimY = true;
+            Game.PlayerState.Checkpoint = "Checkpoint2";
+            Game.PlayerState.Sword = true;
+            playerObj.GetComponent<Attack>().Enable();
+            //Death();
+        }
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
+        if (Game.PlayerState.Checkpoint != null) {
+            Debug.Log("Checkpoint after load: " + Game.PlayerState.Checkpoint);
+        } else {
+            Debug.Log("Checkpoint after load: null");
+        }
+
+        if (Game.PlayerState.Hookshot) playerObj.GetComponent<Hookshot>().isEnabled = true;
+        else playerObj.GetComponent<Hookshot>().isEnabled = false;
+        if (Game.PlayerState.Jump) playerObj.GetComponent<InputHandler>().jumpEnabled = true;
+        else playerObj.GetComponent<InputHandler>().jumpEnabled = false;
+        if (Game.PlayerState.Lift) playerObj.GetComponent<LiftGlove>().isEnabled = true;
+        else playerObj.GetComponent<LiftGlove>().isEnabled = false;
+        if (Game.PlayerState.Sword) playerObj.GetComponent<Attack>().isEnabled = true;
+        else playerObj.GetComponent<Attack>().isEnabled = false;
+
+        mainCamera.depth = 1;
+        if (Game.PlayerState.PlayIntro) {
+            uiCanvas.transform.Find("HUD").GetComponent<RectTransform>().localScale = Vector3.zero;
+            playerObj.GetComponent<InputHandler>().enabled = false;
+            mainCamera.enabled = false;
+            introStep = GetIntroStep(1);
+            introPrincess.GetComponent<LiftTarget>().StartLift(introWizard);
+            introPrincess.GetComponent<Animator>().SetBool("isLifted", true);
+            introWizard.GetComponent<Animator>().SetBool("liftStart", true);
+            introWizard.GetComponent<Animator>().SetFloat("liftSpeed", introPrincess.GetComponent<LiftTarget>().liftSpeed);
+        } else if (Game.PlayerState.Checkpoint != null) {
+            DisableIntroCam(9);
+            playerObj.transform.position = Util.GetCheckpoint(Game.PlayerState.Checkpoint).transform.position;
+            playerObj.transform.rotation = Util.GetCheckpoint(Game.PlayerState.Checkpoint).transform.rotation;
+            mainCamera.GetComponent<CameraBehavior>().Respawn(Util.GetCheckpoint(Game.PlayerState.Checkpoint));
+        } else {
+            DisableIntroCam(9);
+            error = Instantiate(new GameObject(), uiCanvas.transform);
+            error.AddComponent<TextMeshProUGUI>();
+            //error.AddComponent<RectTransform>();
+            error.GetComponent<RectTransform>().pivot = new Vector2(0, 1);
+            error.GetComponent<RectTransform>().anchorMin = new Vector2(0, 1);
+            error.GetComponent<RectTransform>().anchorMax = new Vector2(0, 1);
+            error.GetComponent<RectTransform>().localScale = new Vector3(1, 1, 1);
+            error.GetComponent<RectTransform>().sizeDelta = new Vector2(Screen.currentResolution.width, Screen.currentResolution.height);
+            error.GetComponent<RectTransform>().anchoredPosition = Vector3.zero;
+            error.GetComponent<TextMeshProUGUI>().text = "NullReferenceException: Object reference currentCheckpoint not set to an instance of an object\nGameState.Respawn () (at Assets/Scripts/GameState.cs:22)";
+            errorTimer = Time.time;
+            playerObj.transform.position = new Vector3(25, 1000, 108);
+            playerObj.GetComponent<Rigidbody>().velocity = Vector3.zero;
+            playerObj.GetComponent<InputHandler>().disableMoveImpulse = false;
+            playerObj.transform.rotation = Quaternion.identity;
+            mainCamera.GetComponent<CameraBehavior>().Respawn(Util.GetCheckpoint(Game.PlayerState.Checkpoint));
+        }
     }
     void OnEnable() {
         input.Player.Enable();
@@ -56,24 +122,41 @@ public class GameState : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        introInput = input.Player.Attack.ReadValue<float>() > 0 ? 1 : input.Player.Jump.ReadValue<float>() > 0 ? 1 : input.Player.Interact.ReadValue<float>();
         Killplane();
         if (error!= null) {
             if (Time.time - errorTimer > 7) UnityEngine.Object.Destroy(error);
         }
 
         if (introStep != null) {
+            introInput = input.Player.Attack.ReadValue<float>();
             introTimer += Time.deltaTime;
             introStep = introStep();
+        } else {
+            pauseInput = input.Player.Pause.ReadValue<float>();
         }
+        
+        if (!isPaused && pauseInput > 0 && !pauseInputHeld) {
+            Pause();
+        }
+        if (pauseInput > 0) pauseInputHeld = true;
+        else pauseInputHeld = false;
         if (introInput > 0) introInputHeld = true;
         else introInputHeld = false;
+        if (isDying && deathTimer >= 0) {
+            if (deathTimer > 3) {
+                Debug.Log("GameOver screen");
+                deathTimer = -1;
+                gameOverScreenInstance = Instantiate(gameOverScreen, uiCanvas.transform);
+            } else {
+                deathTimer += Time.deltaTime;
+            }
+        }
     }
 
     private void Respawn() {
-        if (currentCheckpoint != null) {
-            playerObj.transform.position = currentCheckpoint.transform.position;
-            playerObj.transform.rotation = currentCheckpoint.transform.rotation;
+        if (Game.PlayerState.Checkpoint != null) {
+            playerObj.transform.position = Util.GetCheckpoint(Game.PlayerState.Checkpoint).transform.position;
+            playerObj.transform.rotation = Util.GetCheckpoint(Game.PlayerState.Checkpoint).transform.rotation;
         } else {
             error = Instantiate(new GameObject(), uiCanvas.transform);
             error.AddComponent<TextMeshProUGUI>();
@@ -91,14 +174,25 @@ public class GameState : MonoBehaviour
             playerObj.GetComponent<InputHandler>().disableMoveImpulse = false;
             playerObj.transform.rotation = Quaternion.identity;
         }
-        mainCamera.GetComponent<CameraBehavior>().Respawn(currentCheckpoint);
+        mainCamera.GetComponent<CameraBehavior>().Respawn(Util.GetCheckpoint(Game.PlayerState.Checkpoint));
     }
 
     private void Killplane() {
-        if (playerObj.transform.position.y < -500) {
-            Respawn();
+        if (playerObj.transform.position.y < -500 && !isDying) {
+            Death();
         }
     }
+
+    public void Death() {
+        if (!isDying) {
+            isDying = true;
+            deathTimer = 0;
+            playerObj.GetComponent<InputHandler>().enabled = false;
+            Game.PlayerState.Deaths++;
+            Game.PlayerState.PlayIntro = false;
+        }
+    }
+
     private void DisableIntroCam(int idx) {
         for (int i = idx; i > 0; i--) {
             GameObject cam = GameObject.Find("IntroCam" + i);
@@ -109,6 +203,23 @@ public class GameState : MonoBehaviour
             }
         }
     }
+
+    public void Pause() {
+        isPaused = true;
+        pauseScreenInstance = Instantiate(pauseScreen, uiCanvas.transform);
+        playerObj.GetComponent<InputHandler>().enabled = false;
+        mainCamera.GetComponent<CameraBehavior>().enabled = false;
+        //Time.timeScale = 0;
+    }
+
+    public void Unpause() {
+        isPaused = false;
+        Destroy(pauseScreenInstance);
+        if (!isDying) playerObj.GetComponent<InputHandler>().enabled = true;
+        mainCamera.GetComponent<CameraBehavior>().enabled = true;
+        //Time.timeScale = 1;
+    }
+
     private void UpdateIntroCam(int idx) {
         DisableIntroCam(idx - 1);
         introCam = GameObject.Find("IntroCam" + idx.ToString()).GetComponent<Camera>();
@@ -123,6 +234,15 @@ public class GameState : MonoBehaviour
     private bool CanAdvanceDialog() {
         return introTimer > playerObj.GetComponent<InputHandler>().dialogInputCooldown && !introInputHeld && introInput > 0;
     }
+
+    public void AWinnerIsYou() {
+        introTimer = 0;
+        uiCanvas.transform.Find("HUD").GetComponent<RectTransform>().localScale = Vector3.zero;
+        playerObj.GetComponent<InputHandler>().enabled = false;
+        mainCamera.enabled = false;
+        introStep = GetIntroStep(12);
+    }
+
     private IntroStep Intro1() {
         int idx = 1;
         if (introTimer >= 0) {
@@ -256,10 +376,10 @@ public class GameState : MonoBehaviour
             //nameInput.GetComponent<TMP_InputField>().DeactivateInputField();
             //Debug.Log(nameInput.GetComponent<TMP_InputField>().textComponent.text + "; length: " + nameInput.GetComponent<TMP_InputField>().textComponent.text.Length);
         } else if (nameInput.GetComponent<TMP_InputField>().text.Length >= 32) {
-            heroName = nameInput.GetComponent<TMP_InputField>().textComponent.text;
+            Game.PlayerState.HeroName = nameInput.GetComponent<TMP_InputField>().textComponent.text;
             introTimer = 0;
             Destroy(introDialog);
-            List<string> dialogText = new List<string> { "Yes, " + heroName + " is a very heroic name!", "" };
+            List<string> dialogText = new List<string> { "Yes, " + Game.PlayerState.HeroName + " is a very heroic name!", "" };
             List<Camera> cameras = new List<Camera>();
             introDialog = Util.CreateDialogBox(uiCanvas, dialogText, cameras);
             //introDialog.transform.Find("DialogMore").GetComponent<TextMeshProUGUI>().text = "";
@@ -276,7 +396,7 @@ public class GameState : MonoBehaviour
             introTimer = 0;
             Destroy(introDialog);
             introPrincess.transform.rotation = Quaternion.Euler(new Vector3(0, 0, -1));
-            List<string> dialogText = new List<string> { "PRINCESS:\nPlease save me, " + heroName + "!" };
+            List<string> dialogText = new List<string> { "PRINCESS:\nPlease save me, " + Game.PlayerState.HeroName + "!" };
             List<Camera> cameras = new List<Camera> { GameObject.Find("IntroCam" + idx).GetComponent<Camera>() };
             introDialog = Util.CreateDialogBox(uiCanvas, dialogText, cameras);
             introCam = GameObject.Find("IntroCam" + idx.ToString()).GetComponent<Camera>();
@@ -307,14 +427,17 @@ public class GameState : MonoBehaviour
     
     private IntroStep Intro11() {
         int idx = 11;
+        mainCamera.transform.position = introCam.transform.position;
         if (introTimer >= 4) {
             introTimer = 0;
-            DisableIntroCam(9);
+            uiCanvas.transform.Find("HUD").GetComponent<RectTransform>().localScale = new Vector3(1, 1, 1);
             playerObj.GetComponent<InputHandler>().enabled = true;
             //mainCamera.GetComponent<CameraBehavior>().enabled = true;
             mainCamera.enabled = true;
             playerObj.transform.position = new Vector3(introPrincess.transform.position.x, introPrincess.transform.position.y + 0.05f, introPrincess.transform.position.z);
             playerObj.transform.rotation = introPrincess.transform.rotation;
+            //mainCamera.transform.position = introCam.transform.position;
+            DisableIntroCam(9);
             Destroy(introPrincess);
             Debug.Log("IntroCam" + idx, this);
             return null;
@@ -324,6 +447,19 @@ public class GameState : MonoBehaviour
         } else {
             introCam.transform.rotation = Quaternion.RotateTowards(introCam.transform.rotation, Quaternion.Euler(90, 0, 0), 1000 * Time.deltaTime);
             Debug.Log(Vector3.Dot(introCam.transform.forward, Vector3.down));
+        }
+        return GetIntroStep(idx);
+    }
+
+    private IntroStep Intro12() {
+        int idx = 12;
+        if (introTimer >= 0) {
+            introTimer = 0;
+            GameObject.Find("IntroCam" + idx).GetComponent<Camera>().enabled = true;
+            GameObject.Find("IntroCam" + idx).GetComponent<Camera>().depth = 1;
+            Debug.Log("Intro" + idx);
+            //return Intro2;
+            return GetIntroStep(idx + 1);
         }
         return GetIntroStep(idx);
     }

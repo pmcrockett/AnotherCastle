@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Treasure : MonoBehaviour
 {
+    public AbilitiesDisplay display;
     public List<string> dialog = new List<string>();
     public List<Camera> cameras = new List<Camera>();
     public string contents;
@@ -24,7 +25,12 @@ public class Treasure : MonoBehaviour
     }
     void Start()
     {
-        
+        if ((contents == "Jump" && Game.PlayerState.Jump)
+            || (contents == "Hookshot" && Game.PlayerState.Hookshot)
+            || (contents == "Lift" && Game.PlayerState.Lift)
+            || (contents == "Attack" && Game.PlayerState.Sword)) {
+            isOpen = true;
+        }
     }
 
     // Update is called once per frame
@@ -52,9 +58,20 @@ public class Treasure : MonoBehaviour
         }
     }
     private void GiveTreasure(GameObject _opener) {
-        if (contents == "Jump") _opener.GetComponent<InputHandler>().jumpEnabled = true;
-        else if (contents == "Hookshot") _opener.GetComponent<Hookshot>().isEnabled = true;
-        else if (contents == "LiftGlove") _opener.GetComponent<LiftGlove>().isEnabled = true;
-        else if (contents == "Attack") _opener.GetComponent<Attack>().isEnabled = true;
+        if (contents == "Jump") {
+            _opener.GetComponent<InputHandler>().jumpEnabled = true;
+            Game.PlayerState.Jump = true;
+        } else if (contents == "Hookshot") {
+            _opener.GetComponent<Hookshot>().isEnabled = true;
+            Game.PlayerState.Hookshot = true;
+        } else if (contents == "Lift") {
+            _opener.GetComponent<LiftGlove>().isEnabled = true;
+            Game.PlayerState.Lift = true;
+        } else if (contents == "Attack") {
+            _opener.GetComponent<Attack>().isEnabled = true;
+            Game.PlayerState.Sword = true;
+            _opener.GetComponent<Attack>().Enable();
+        }
+        if (display != null) display.Redraw();
     }
 }

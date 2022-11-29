@@ -45,6 +45,9 @@ ModelImporter:
   - first:
       74: 2667949614841947897
     second: Walk
+  - first:
+      74: -7758925608236881194
+    second: IdleLift
   externalObjects: {}
   materials:
     materialImportMode: 2

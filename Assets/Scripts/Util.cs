@@ -81,6 +81,7 @@ public class Util
 		text.rectTransform.anchorMax = new Vector2(1, 1);
 		text.rectTransform.offsetMax = new Vector2(_leftRightPad * -1, _topBottomPad * -1);
 		text.rectTransform.offsetMin = new Vector2(_leftRightPad, _topBottomPad);
+		text.font = Game.Menu.GameFont;
 		textObj.name = "DialogText";
 
 		moreObj.transform.SetParent(box.transform, false);
@@ -88,9 +89,10 @@ public class Util
 		moreText.rectTransform.pivot = new Vector2(1, 0);
 		moreText.rectTransform.anchorMin = new Vector2(1, 0);
 		moreText.rectTransform.anchorMax = new Vector2(1, 0);
-		moreText.rectTransform.sizeDelta = new Vector2(200, 40);
+		moreText.rectTransform.sizeDelta = new Vector2(600, 40);
 		moreText.GetComponent<TextMeshProUGUI>().horizontalAlignment = HorizontalAlignmentOptions.Right;
 		moreText.rectTransform.anchoredPosition = new Vector3(_leftRightPad * -1, _topBottomPad, 0);
+		moreText.font = Game.Menu.GameFont;
 		moreObj.name = "DialogMore";
 
 		dialogBox.DisplayNextDialog();
@@ -109,5 +111,10 @@ public class Util
 	 */
 	public static string FixNewline(string _str) {
 		return _str.Replace("\\n", "\n");
+    }
+
+	public static Checkpoint GetCheckpoint(string _name) {
+		GameObject obj = GameObject.Find(_name);
+		return obj != null ? obj.GetComponent<Checkpoint>() : null;
     }
 }

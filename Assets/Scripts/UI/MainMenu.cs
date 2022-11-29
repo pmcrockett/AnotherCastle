@@ -8,12 +8,29 @@ using TMPro;
 using Unity.VectorGraphics;
 using System.Text.RegularExpressions;
 
-namespace Controls {
+namespace Game {
     public class Axis {
         public static bool InvertCameraX { get; set; }
         public static bool InvertCameraY { get; set; }
         public static bool InvertAimX { get; set; }
         public static bool InvertAimY { get; set; }
+    }
+
+    public class PlayerState {
+        public static string Checkpoint { get; set; }
+        public static bool PlayIntro { get; set; }
+        public static int Deaths { get; set;}
+        public static string HeroName { get; set; }
+        public static bool Hookshot { get; set; }
+        public static bool Jump { get; set; }
+        public static bool Lift { get; set; }
+        public static bool Sword { get; set; }
+    }
+
+    public class Menu {
+        public static bool SkipSplash {  get; set; }
+
+        public static TMP_FontAsset GameFont { get; set; }
     }
 }
 
@@ -22,6 +39,7 @@ public class MainMenu : MonoBehaviour
     public Texture2D cursor;
     public Camera menuCamera;
     public EventSystem eventSystem;
+    public TMP_FontAsset gameFont;
     private GameObject horiz;
     private GameObject main;
     private GameObject settings;
@@ -49,18 +67,30 @@ public class MainMenu : MonoBehaviour
         title.GetComponent<Image>().enabled = false;
         main.GetComponent<RectTransform>().localScale = new Vector3(0, 0, 0);
         //main.transform.Find("StartButton").gameObject.GetComponent<Button>().Select();
+        Game.Menu.GameFont = gameFont;
     }
     // Start is called before the first frame update
     void Start()
     {
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.Confined;
         timer = 0;
+        Game.PlayerState.Checkpoint = null;
+        Game.PlayerState.PlayIntro = true;
+        Game.PlayerState.Deaths = 0;
+        Game.PlayerState.HeroName = "";
+        Game.PlayerState.Hookshot = false;
+        Game.PlayerState.Jump = false;
+        Game.PlayerState.Lift = false;
+        Game.PlayerState.Sword = false;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (timer > 6) {
+        if (timer > 6 || Game.Menu.SkipSplash) {
             timer = -1;
+            Game.Menu.SkipSplash = false;
             about.GetComponent<TextMeshProUGUI>().enabled = false;
             InitMain();
         } else if (timer > -1){
@@ -117,34 +147,5 @@ public class MainMenu : MonoBehaviour
         main.transform.Find("SettingsButton").gameObject.GetComponentInChildren<TextMeshProUGUI>().color = new Color(col.r, col.g, col.b, 1);
         main.transform.Find("ExitButton").gameObject.GetComponentInChildren<TextMeshProUGUI>().color = new Color(col.r, col.g, col.b, 1);
         spacer.GetComponent<Image>().enabled = false;
-    }
-
-    public bool ToggleButtonState(TextMeshProUGUI text) {
-        Regex noState = new Regex(@"\(No\)$");
-        Regex yesState = new Regex(@"\(Yes\)$");
-        Regex openState = new Regex(@"      >>>$");
-        if (noState.IsMatch(text.text)) {
-            text.text = noState.Replace(text.text, "(Yes)");
-            return true;
-        } else {
-            text.text = yesState.Replace(text.text, "(No)");
-            return false;
-        }
-    }
-
-    public void InvertCameraXButtonClicked() {
-        Controls.Axis.InvertCameraX = ToggleButtonState(settings.transform.Find("InvertCameraXButton").gameObject.GetComponentInChildren<TextMeshProUGUI>());
-    }
-
-    public void InvertCameraYButtonClicked() {
-        Controls.Axis.InvertCameraY = ToggleButtonState(settings.transform.Find("InvertCameraYButton").gameObject.GetComponentInChildren<TextMeshProUGUI>());
-    }
-
-    public void InvertAimXButtonClicked() {
-        Controls.Axis.InvertAimX = ToggleButtonState(settings.transform.Find("InvertAimXButton").gameObject.GetComponentInChildren<TextMeshProUGUI>());
-    }
-
-    public void InvertAimYButtonClicked() {
-        Controls.Axis.InvertAimY = ToggleButtonState(settings.transform.Find("InvertAimYButton").gameObject.GetComponentInChildren<TextMeshProUGUI>());
     }
 }
