@@ -31,16 +31,20 @@ public class Health : MonoBehaviour
     public void Kill() {
         health = 0;
         anim.SetBool("isDead", true);
+        transform.Find("Die").GetComponent<AudioSource>().Play();
         if (isPlayer && state != null) {
             state.Death();
         }
     }
 
     public bool ApplyDamage(int _amount) {
-        health -= _amount;
-        bool isDead = health <= 0;
-        if (isDead) Kill();
-        if (display != null) display.Redraw();
-        return isDead;
+        if (health > 0) {
+            health -= _amount;
+            bool isDead = health <= 0;
+            if (isDead) Kill();
+            else transform.Find("Hurt").GetComponent<AudioSource>().Play();
+            if (display != null) display.Redraw();
+            return isDead;
+        } else return true;
     }
 }

@@ -21,9 +21,11 @@ public class Attack : MonoBehaviour {
     private Animator anim;
     private GameObject swordInstance;
     List<GameObject> hitObjects = new List<GameObject>();
+    private AudioSource attackSound;
 
     private void Awake() {
         anim = GetComponent<Animator>();
+        attackSound = transform.Find("SwordSwish").GetComponent<AudioSource>();
     }
     // Start is called before the first frame update
     void Start() {
@@ -68,6 +70,8 @@ public class Attack : MonoBehaviour {
             if (Physics.CapsuleCast(point1, point2, collider.radius - 0.01f, attackStartDir, out attackCast, attackRange - collider.radius, 0b10000000, QueryTriggerInteraction.Ignore)) {
                 adjustedRange = attackCast.distance;
             } else adjustedRange = attackRange;
+            attackSound.GetComponent<RandomRobin>().RefreshClip();
+            attackSound.Play();
         }
     }
 
@@ -85,7 +89,7 @@ public class Attack : MonoBehaviour {
 
     public void AttackCollision(GameObject _obj, bool _canHitOnReturn = false) {
         if (isAttacking && (!isReturning || _canHitOnReturn) && !hitObjects.Contains(_obj) &&
-            ((target == null && _obj.layer == 6)
+            ((target == null && _obj.layer == 6 && _obj.GetComponent<Health>() != null)
             || (_obj == target))) {
             Attack targetAttack = _obj.GetComponent<Attack>();
             if (targetAttack != null && targetAttack.isAttacking && (attackLerp > targetAttack.attackLerp || targetAttack.isReturning)) {

@@ -46,7 +46,8 @@ public class Treasure : MonoBehaviour
                 anim.Play("Opening");
                 anim.PlayQueued("Opened");
                 isOpen = true;
-                foreach(BoxCollider x in GetComponents<BoxCollider>()) {
+                transform.Find("TreasureOpen").GetComponent<AudioSource>().Play();
+                foreach (BoxCollider x in GetComponents<BoxCollider>()) {
                     if (!x.isTrigger) {
                         x.center = new Vector3(0, -0.13f, 0);
                         x.size = new Vector3(1, 0.63f, 1);

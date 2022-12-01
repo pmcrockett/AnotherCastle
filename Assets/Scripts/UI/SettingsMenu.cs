@@ -10,6 +10,8 @@ using System.Text.RegularExpressions;
 
 public class SettingsMenu : MonoBehaviour
 {
+    private AudioSource menuClick;
+    private AudioSource menuConfirm;
     // Start is called before the first frame update
     void Start()
     {
@@ -17,6 +19,13 @@ public class SettingsMenu : MonoBehaviour
         if (Game.Axis.InvertCameraY) ToggleButtonState(transform.Find("InvertCameraYButton").gameObject.GetComponentInChildren<TextMeshProUGUI>());
         if (Game.Axis.InvertAimX) ToggleButtonState(transform.Find("InvertAimXButton").gameObject.GetComponentInChildren<TextMeshProUGUI>());
         if (Game.Axis.InvertAimY) ToggleButtonState(transform.Find("InvertAimYButton").gameObject.GetComponentInChildren<TextMeshProUGUI>());
+
+        if (GameObject.Find("MenuClickSound") != null) {
+            menuClick = GameObject.Find("MenuClickSound").GetComponent<AudioSource>();
+        }
+        if (GameObject.Find("MenuConfirmSound") != null) {
+            menuConfirm = GameObject.Find("MenuConfirmSound").GetComponent<AudioSource>();
+        }
     }
 
     // Update is called once per frame
@@ -37,18 +46,22 @@ public class SettingsMenu : MonoBehaviour
     }
 
     public void InvertCameraXButtonClicked() {
+        if (menuConfirm != null) menuConfirm.Play();
         Game.Axis.InvertCameraX = ToggleButtonState(transform.Find("InvertCameraXButton").gameObject.GetComponentInChildren<TextMeshProUGUI>());
     }
 
     public void InvertCameraYButtonClicked() {
+        if (menuConfirm != null) menuConfirm.Play();
         Game.Axis.InvertCameraY = ToggleButtonState(transform.Find("InvertCameraYButton").gameObject.GetComponentInChildren<TextMeshProUGUI>());
     }
 
     public void InvertAimXButtonClicked() {
+        if (menuConfirm != null) menuConfirm.Play();
         Game.Axis.InvertAimX = ToggleButtonState(transform.Find("InvertAimXButton").gameObject.GetComponentInChildren<TextMeshProUGUI>());
     }
 
     public void InvertAimYButtonClicked() {
+        if (menuConfirm != null) menuConfirm.Play();
         Game.Axis.InvertAimY = ToggleButtonState(transform.Find("InvertAimYButton").gameObject.GetComponentInChildren<TextMeshProUGUI>());
     }
 }

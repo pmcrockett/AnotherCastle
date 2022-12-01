@@ -65,12 +65,14 @@ public class Switch : MonoBehaviour
         if (other.GetComponent<SwitchTrigger>() != null) {
             isTriggered = true;
             triggerList.Add(other.gameObject);
+            transform.Find("SwitchDown").GetComponent<AudioSource>().Play();
         }
     }
     private void OnTriggerExit(Collider other) {
         triggerList.Remove(other.gameObject);
         if (triggerList.Count <= 0 && !permanentTrigger) {
             isTriggered = false;
+            transform.Find("SwitchUp").GetComponent<AudioSource>().Play();
         }
     }
 }

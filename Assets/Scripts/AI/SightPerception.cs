@@ -17,6 +17,7 @@ public class SightPerception : MonoBehaviour {
     private Vector3 castStartDir;
     private GameObject oldTarget;
     private Health health;
+    private bool oldScanResult = false;
 
     private void Awake() {
         health = GetComponent<Health>();
@@ -35,8 +36,12 @@ public class SightPerception : MonoBehaviour {
             Init();
             oldTarget = target;
         }
-        if (health.health <= 0) target = null;
-        else if (isActive && target != null) ScanForTarget(target);
+        oldScanResult = targetInSight;
+        if (health.health <= 0) {
+            target = null;
+            targetInSight = false;
+        } else if (isActive && target != null) ScanForTarget(target);
+        if (targetInSight && !oldScanResult) transform.Find("GuardAlerted").GetComponent<AudioSource>().Play();
     }
 
     private void Init() {

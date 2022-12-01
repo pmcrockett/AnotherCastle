@@ -22,6 +22,7 @@ public class GameState : MonoBehaviour
     public GameObject introPrincess;
     public GameObject nameInput;
     public GameObject hero;
+    public AudioClip castleMusic;
     public bool isPaused = false;
     public bool isDying = false;
     private GameObject gameOverScreenInstance;
@@ -38,6 +39,7 @@ public class GameState : MonoBehaviour
     private float lastTextInputTime = -1;
     private float camGlitchSpeed = 0.6f;
     private float deathTimer = -1;
+    private AudioSource musicContainer;
 
     IntroStep introStep;
 
@@ -48,16 +50,19 @@ public class GameState : MonoBehaviour
     void Start() {
         // Debug
         if (Game.PlayerState.Deaths <= 0) {
-            Game.PlayerState.PlayIntro = false;
-            Game.PlayerState.Checkpoint = null;
+            Game.PlayerState.PlayIntro = true;
             Game.Axis.InvertCameraX = true;
             Game.Axis.InvertCameraY = true;
             Game.Axis.InvertAimX = true;
             Game.Axis.InvertAimY = true;
-            Game.PlayerState.Checkpoint = "Checkpoint2";
+            //Game.PlayerState.Checkpoint = "Checkpoint1";
+            Game.PlayerState.Checkpoint = null;
             Game.PlayerState.Sword = true;
             playerObj.GetComponent<Attack>().Enable();
             //Death();
+        }
+        if (GameObject.Find("MusicContainer") != null) {
+            musicContainer = GameObject.Find("MusicContainer").GetComponent<AudioSource>();
         }
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
@@ -91,6 +96,8 @@ public class GameState : MonoBehaviour
             playerObj.transform.position = Util.GetCheckpoint(Game.PlayerState.Checkpoint).transform.position;
             playerObj.transform.rotation = Util.GetCheckpoint(Game.PlayerState.Checkpoint).transform.rotation;
             mainCamera.GetComponent<CameraBehavior>().Respawn(Util.GetCheckpoint(Game.PlayerState.Checkpoint));
+            musicContainer.clip = castleMusic;
+            musicContainer.Play();
         } else {
             DisableIntroCam(9);
             error = Instantiate(new GameObject(), uiCanvas.transform);
@@ -109,6 +116,7 @@ public class GameState : MonoBehaviour
             playerObj.GetComponent<InputHandler>().disableMoveImpulse = false;
             playerObj.transform.rotation = Quaternion.identity;
             mainCamera.GetComponent<CameraBehavior>().Respawn(Util.GetCheckpoint(Game.PlayerState.Checkpoint));
+            if (musicContainer != null) musicContainer.Stop();
         }
     }
     void OnEnable() {
@@ -146,6 +154,7 @@ public class GameState : MonoBehaviour
             if (deathTimer > 3) {
                 Debug.Log("GameOver screen");
                 deathTimer = -1;
+                musicContainer.GetComponent<FadeHandler>().FadeAudio();
                 gameOverScreenInstance = Instantiate(gameOverScreen, uiCanvas.transform);
             } else {
                 deathTimer += Time.deltaTime;
@@ -322,6 +331,7 @@ public class GameState : MonoBehaviour
                     //introPrincess.GetComponent<CapsuleCollider>().isTrigger = true;
                     introPrincess.transform.rotation = Quaternion.RotateTowards(introPrincess.transform.rotation, Quaternion.Euler(0, 0, 1), 360 * Time.deltaTime);
                     introWizard.GetComponent<Animator>().SetBool("throwStart", false);
+                    GameObject.Find("CellDoor").GetComponent<DoorClose>().Close();
                 }
             }
             introWizard.GetComponent<Animator>().SetFloat("walkSpeed", introWizard.GetComponent<Rigidbody>().velocity.magnitude / 7);
@@ -365,6 +375,7 @@ public class GameState : MonoBehaviour
     }
     private IntroStep Intro8() {
         int idx = 8;
+        nameInput.GetComponent<TMP_InputField>().Select();
         if (nameInput.GetComponent<TMP_InputField>().text.Length >= 1 && lastTextInputTime < 0) {
             lastTextInputTime = Time.time + 0.16f;
         }
@@ -373,6 +384,7 @@ public class GameState : MonoBehaviour
             nameInput.GetComponent<TMP_InputField>().text += nameInput.GetComponent<TMP_InputField>().text[nameInput.GetComponent<TMP_InputField>().textComponent.text.Length - 2];
             lastTextInputTime = Time.time;
             nameInput.GetComponent<TMP_InputField>().caretPosition = nameInput.GetComponent<TMP_InputField>().text.Length;
+            GameObject.Find("ErrorSound").GetComponent<AudioSource>().Play();
             //nameInput.GetComponent<TMP_InputField>().DeactivateInputField();
             //Debug.Log(nameInput.GetComponent<TMP_InputField>().textComponent.text + "; length: " + nameInput.GetComponent<TMP_InputField>().textComponent.text.Length);
         } else if (nameInput.GetComponent<TMP_InputField>().text.Length >= 32) {
@@ -420,6 +432,7 @@ public class GameState : MonoBehaviour
         } else {
             introCam.transform.position = new Vector3(introCam.transform.position.x, introCam.transform.position.y + 1, introCam.transform.position.z);
             camGlitchSpeed = Mathf.Min(camGlitchSpeed *= 1.3f, 15);
+            GameObject.Find("ErrorSound").GetComponent<AudioSource>().Play();
         }
         introCam.transform.rotation = Quaternion.LookRotation(introPrincess.transform.position - introCam.transform.position);
         return GetIntroStep(idx);
@@ -429,6 +442,7 @@ public class GameState : MonoBehaviour
         int idx = 11;
         mainCamera.transform.position = introCam.transform.position;
         if (introTimer >= 4) {
+            GameObject.Find("ErrorSound").GetComponent<AudioSource>().Play();
             introTimer = 0;
             uiCanvas.transform.Find("HUD").GetComponent<RectTransform>().localScale = new Vector3(1, 1, 1);
             playerObj.GetComponent<InputHandler>().enabled = true;
@@ -439,11 +453,13 @@ public class GameState : MonoBehaviour
             //mainCamera.transform.position = introCam.transform.position;
             DisableIntroCam(9);
             Destroy(introPrincess);
+            if (musicContainer != null) musicContainer.GetComponent<FadeHandler>().FadeAudio();
             Debug.Log("IntroCam" + idx, this);
             return null;
         } else if (Vector3.Dot(introCam.transform.forward, Vector3.down) >= 0.999) {
             introPrincess.transform.position = new Vector3(introPrincess.transform.position.x, introPrincess.transform.position.y, introPrincess.transform.position.z - 0.1f);
             introCam.transform.rotation = Quaternion.LookRotation(introPrincess.transform.position - introCam.transform.position);
+            GameObject.Find("ErrorSound").GetComponent<AudioSource>().Play();
         } else {
             introCam.transform.rotation = Quaternion.RotateTowards(introCam.transform.rotation, Quaternion.Euler(90, 0, 0), 1000 * Time.deltaTime);
             Debug.Log(Vector3.Dot(introCam.transform.forward, Vector3.down));

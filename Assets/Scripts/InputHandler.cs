@@ -43,7 +43,10 @@ public class InputHandler : MonoBehaviour
     private Vector3 lastMoveInput = Vector3.zero;
     private Vector3 desiredForward = Vector3.zero;
     private float lastDialogInput = -1;
-    TextMesh textMesh;
+    private AudioSource jumpSound;
+    private AudioSource landSound;
+    private AudioSource footstepLSound;
+    private AudioSource footstepRSound;
     
     void Awake()
     {
@@ -68,8 +71,12 @@ public class InputHandler : MonoBehaviour
     }
 
     // Start is called before the first frame update
-    void Start()
-    {
+    void Start() {
+        jumpSound = transform.Find("Jump").GetComponent<AudioSource>();
+        landSound = transform.Find("Land").GetComponent<AudioSource>();
+        footstepLSound = transform.Find("FootstepL").GetComponent<AudioSource>();
+        footstepRSound = transform.Find("FootstepR").GetComponent<AudioSource>();
+
         lastJumpTime = Time.time;
         lastWallJumpTime = Time.time;
         lastUpdatePosition = transform.position;
@@ -148,7 +155,7 @@ public class InputHandler : MonoBehaviour
         Vector3 capsuleStart = new Vector3(transform.position.x, transform.position.y - (GetComponent<CapsuleCollider>().height / 2 + GetComponent<CapsuleCollider>().radius) + GetComponent<CapsuleCollider>().height / 3.5f, transform.position.z) + transform.forward * -0.01f;
         Vector3 capsuleEnd = new Vector3(transform.position.x, transform.position.y + (GetComponent<CapsuleCollider>().height / 2 - GetComponent<CapsuleCollider>().radius), transform.position.z) + transform.forward * -0.01f;
         RaycastHit wallHit;
-        Physics.CapsuleCast(capsuleStart, capsuleEnd, GetComponent<CapsuleCollider>().radius, transform.forward, out wallHit, 0.1f, 0b10000000, QueryTriggerInteraction.Ignore);
+        Physics.CapsuleCast(capsuleStart, capsuleEnd, GetComponent<CapsuleCollider>().radius - 0.035f, transform.forward, out wallHit, 0.1f, 0b10000000, QueryTriggerInteraction.Ignore);
         return wallHit;
     }
 
@@ -158,6 +165,10 @@ public class InputHandler : MonoBehaviour
             canJump = true;
             body.drag = floorDrag;
             disableMoveImpulse = false;
+            if (isFalling) {
+                landSound.GetComponent<RandomRobin>().RefreshClip();
+                landSound.Play();
+            }
             isFalling = false;
             isWallJumping = false;
             anim.SetBool("isFalling", false);
@@ -180,6 +191,8 @@ public class InputHandler : MonoBehaviour
                         disableMoveImpulse = false;
                         lastJumpTime = Time.time;
                         anim.SetBool("jumpStart", true);
+                        jumpSound.GetComponent<RandomRobin>().RefreshClip();
+                        jumpSound.Play();
                     } else if (!canJump && !jumpInputHeld && Time.time - wallJumpWindowStart <= 0.25) {
                         WallJump(wallJumpVector);
                     } else if (!canJump && !jumpInputHeld) {
@@ -201,7 +214,7 @@ public class InputHandler : MonoBehaviour
                     && climbLerp <= 0 
                     && !disableMoveImpulse 
                     && !GetComponent<LiftGlove>().isLifting
-                    && (!hookshot.isEnabled || !hookshot.isAiming)) {
+                    && (!hookshot.isEnabled || (!hookshot.isAiming && !hookshot.isMoving))) {
                     attack.StartAttack(null);
                 }
                 attackInputHeld = true;
@@ -297,6 +310,10 @@ public class InputHandler : MonoBehaviour
         wallJumpWindowStart = 0;
         lastJumpTime = 0;
         anim.SetBool("wallJumpStart", true);
+        landSound.GetComponent<RandomRobin>().RefreshClip();
+        landSound.Play();
+        jumpSound.GetComponent<RandomRobin>().RefreshClip();
+        jumpSound.Play();
     }
     private bool CanEdgeGrab() {
         bool lowCast = Physics.Raycast(transform.position - new Vector3(0, GetComponent<CapsuleCollider>().height / 3.6f, 0), transform.forward, 1.25f, 0b10000000, QueryTriggerInteraction.Ignore);
@@ -348,6 +365,8 @@ public class InputHandler : MonoBehaviour
                     body.AddForce(reboundDir * currentVelocity * 150);
                     gameObject.transform.forward = Util.FlattenVectorOnY(currentMoveDirection);
                     Debug.Log("Bump!");
+                    landSound.GetComponent<RandomRobin>().RefreshClip();
+                    landSound.Play();
                 }
             }
         }
@@ -365,7 +384,7 @@ public class InputHandler : MonoBehaviour
     
     private void OnTriggerEnter(Collider other) {
         if (hookshot.isMoving) {
-            hookshot.Interrupt();
+            //hookshot.Interrupt();
         }
     }
 }

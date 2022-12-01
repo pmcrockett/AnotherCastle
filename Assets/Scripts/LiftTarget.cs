@@ -15,6 +15,7 @@ public class LiftTarget : MonoBehaviour
     private float groundedDrag;
     private Vector3 lifterOldForward;
     private Quaternion rotationDelta;
+    private bool wasPreviouslyGrounded = true;
     // Start is called before the first frame update
     void Start()
     {
@@ -38,11 +39,18 @@ public class LiftTarget : MonoBehaviour
         //Debug.Log(Physics.SphereCast(transform.position, (Util.GetColliderWidth(gameObject) - 0.02f) / 2, Vector3.down, out fallCast, 9999999, 0b10000000, QueryTriggerInteraction.Ignore));
         //Debug.Log(fallCast.distance + " vs. " + (Util.GetColliderHeight(gameObject) / 1.9 - (Util.GetColliderWidth(gameObject) - 0.02f) / 2));
         if (Util.IsGrounded(gameObject, (Util.GetColliderWidth(gameObject) - 0.02f) / 2)) {
-            GetComponent<Rigidbody>().drag = groundedDrag;
             if (GetComponent<Rigidbody>().velocity == Vector3.zero) GetComponent<Rigidbody>().isKinematic = true;
+            if (!wasPreviouslyGrounded) {
+                if (transform.Find("Thud") != null) {
+                    transform.Find("Thud").GetComponent<AudioSource>().Play();
+                }
+                GetComponent<Rigidbody>().drag = groundedDrag;
+                wasPreviouslyGrounded = true;
+            }
         } else {
             GetComponent<Rigidbody>().drag = 0;
             if (!isLifted) GetComponent<Rigidbody>().isKinematic = false;
+            wasPreviouslyGrounded = false;
         }
     }
 

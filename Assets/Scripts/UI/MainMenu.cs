@@ -40,6 +40,8 @@ public class MainMenu : MonoBehaviour
     public Camera menuCamera;
     public EventSystem eventSystem;
     public TMP_FontAsset gameFont;
+    public AudioSource dialogSound;
+    public AudioClip music;
     private GameObject horiz;
     private GameObject main;
     private GameObject settings;
@@ -50,6 +52,8 @@ public class MainMenu : MonoBehaviour
     private GameObject lastSelected;
     private GameObject spacer;
     private float timer;
+    private AudioSource menuClick;
+    private AudioSource menuConfirm;
 
     private void Awake() {
         horiz = transform.Find("HorizContainer").gameObject;
@@ -68,6 +72,14 @@ public class MainMenu : MonoBehaviour
         main.GetComponent<RectTransform>().localScale = new Vector3(0, 0, 0);
         //main.transform.Find("StartButton").gameObject.GetComponent<Button>().Select();
         Game.Menu.GameFont = gameFont;
+        GameObject.Find("MusicContainer").GetComponent<AudioSource>().clip = music;
+        if (GameObject.Find("MenuClickSound") != null) {
+            menuClick = GameObject.Find("MenuClickSound").GetComponent<AudioSource>();
+        }
+        if (GameObject.Find("MenuConfirmSound") != null) {
+            menuConfirm = GameObject.Find("MenuConfirmSound").GetComponent<AudioSource>();
+        }
+
     }
     // Start is called before the first frame update
     void Start()
@@ -83,6 +95,7 @@ public class MainMenu : MonoBehaviour
         Game.PlayerState.Jump = false;
         Game.PlayerState.Lift = false;
         Game.PlayerState.Sword = false;
+        GameObject.Find("MusicContainer").GetComponent<AudioSource>().Play();
     }
 
     // Update is called once per frame
@@ -103,15 +116,18 @@ public class MainMenu : MonoBehaviour
     }
 
     public void StartClicked() {
+        if (menuConfirm != null) menuConfirm.Play();
         if (currentMenuContext == main) SceneManager.LoadSceneAsync("Castle");
     }
 
     public void ExitClicked() {
-        if(currentMenuContext == main) Application.Quit();
+        if (menuConfirm != null) menuConfirm.Play();
+        if (currentMenuContext == main) Application.Quit();
     }
 
     public void SettingsClicked() {
         if (currentMenuContext == main) {
+            if (menuConfirm != null) menuConfirm.Play();
             currentMenuContext = settings;
             settings.GetComponent<RectTransform>().localScale = new Vector3(1, 1, 1);
             controls.GetComponent<SVGImage>().enabled = true;
@@ -131,6 +147,7 @@ public class MainMenu : MonoBehaviour
     public void InitMain() {
         main.GetComponent<RectTransform>().localScale = new Vector3(1, 1, 1);
         if (currentMenuContext == settings) {
+            if (menuConfirm != null) menuConfirm.Play();
             main.transform.Find("SettingsButton").gameObject.GetComponent<Button>().Select();
         } else {
             main.transform.Find("StartButton").gameObject.GetComponent<Button>().Select();

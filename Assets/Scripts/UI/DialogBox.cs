@@ -36,6 +36,7 @@ public class DialogBox : MonoBehaviour
             } else {
                 transform.parent.Find("DialogMore").GetComponent<TextMeshProUGUI>().text = "(End)";
             }
+            GameObject.Find("DialogSound").GetComponent<AudioSource>().Play();
             return true;
         } else return false;
     }

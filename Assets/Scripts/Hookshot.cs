@@ -26,6 +26,7 @@ public class Hookshot : MonoBehaviour
     private GameObject pointInstance = null;
     private List<GameObject> chainInstances = new List<GameObject>();
     private Vector3 lastMovePosition;
+    private AudioSource hookshotSound;
 
     void Awake() {
         input = new PlayerInput();
@@ -40,9 +41,8 @@ public class Hookshot : MonoBehaviour
     }
 
     // Start is called before the first frame update
-    void Start()
-    {
-        
+    void Start() {
+        hookshotSound = transform.Find("Hookshot").GetComponent<AudioSource>();
     }
 
     // Update is called once per frame
@@ -144,6 +144,7 @@ public class Hookshot : MonoBehaviour
                         Debug.Log("points[" + (int)(i / chainFrequency) + "]");
                     }
                     lastMovePosition = startPosition;
+                    hookshotSound.Play();
                     Debug.Log("Hookshot hit a target");
                 }
                 Debug.DrawLine(transform.position, aimTarget, Color.red, 3);
@@ -157,6 +158,7 @@ public class Hookshot : MonoBehaviour
     public void Interrupt() {
         lerpVal = 0;
         isMoving = false;
+        hookshotSound.Stop();
         Destroy();
     }
 }

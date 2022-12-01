@@ -1,0 +1,25 @@
+*Blip for text box appearing
+*Sword swish
+*Sword strike
+*Footsteps
+*Jump start
+*Jump land
+XWall jump
+*Enemy sees you
+*Enemy footsteps
+*Open treasure
+*Lift object
+*Throw object
+*Object hits ground
+*Hookshot reel
+*Torch burning
+*Lava ambience
+*Switch click
+*Moving platform?
+*Menu click
+*Menu confirm
+*Princess dies
+*Enemy dies
+*Error ding
+*Princess hurt
+*Enemy hurt

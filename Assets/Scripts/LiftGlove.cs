@@ -55,6 +55,8 @@ public class LiftGlove : MonoBehaviour
             LiftTarget hitTarget = liftHit.collider.GetComponent<LiftTarget>();
             if (hitTarget != null) {
                 //Debug.Log("Lifting object");
+                transform.Find("Lift").GetComponent<RandomRobin>().RefreshClip();
+                transform.Find("Lift").GetComponent<AudioSource>().Play();
                 hitTarget.StartLift(gameObject);
                 liftObj = hitTarget.gameObject;
                 isLifting = true;
@@ -79,6 +81,7 @@ public class LiftGlove : MonoBehaviour
             liftObj.GetComponent<LiftTarget>().EndLift(throwDirection, GetComponent<Rigidbody>().velocity / 5);
             isThrowFrame = true;
             anim.SetBool("throwStart", true);
+            transform.Find("Throw").GetComponent<AudioSource>().Play();
             //liftObj.GetComponent<LiftTarget>().EndLift(throwDirection, 5);
             Debug.Log("Throwing object at angle: " + liftObj.GetComponent<LiftTarget>().throwAngle * -1 + " with velocity " + GetComponent<Rigidbody>().velocity / 10 + " in direction " + throwDirection);
         }

@@ -1,3 +1,5 @@
+INTRO
+
 Once upon a time there was a beautiful PRINCESS who ruled her kingdom with wisdom and compassion.
 
 But darkness fell over the land, and the princess was kidnapped by the evil wizard, GROMDAK, to live out her days in a cold, dark dungeon.
@@ -11,3 +13,17 @@ Please tell me your name:
 PRINCESS: Please save me, [garbled player name].
 
 [Camera janks outs]
+
+
+
+ENDING
+
+PRINCESS: [hero]! You have defeated the evil GROMDAK and rescued me from this accursed dungeon! The kingdom is forever in your debt.
+
+PRINCESS: What a hero!
+
+[Black screen]
+
+And so, [hero] and the PRINCESS lived happily ever after.
+
+THE END
