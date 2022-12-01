@@ -10,11 +10,13 @@ using System.Reflection;
 
 public class GameState : MonoBehaviour
 {
+    public string checkpointOverride;
     public GameObject playerObj;
     public Camera mainCamera;
     public Canvas uiCanvas;
     public GameObject gameOverScreen;
     public GameObject pauseScreen;
+    public GameObject endingScreen;
     public Checkpoint currentCheckpoint;
     public GameObject error;
     public float errorTimer;
@@ -27,6 +29,7 @@ public class GameState : MonoBehaviour
     public bool isDying = false;
     private GameObject gameOverScreenInstance;
     private GameObject pauseScreenInstance;
+    private GameObject endingScreenInstance;
     private delegate IntroStep IntroStep();
     private Camera introCam = null;
     private float introTimer;
@@ -40,6 +43,7 @@ public class GameState : MonoBehaviour
     private float camGlitchSpeed = 0.6f;
     private float deathTimer = -1;
     private AudioSource musicContainer;
+    private bool playerIsInEndingPos = false;
 
     IntroStep introStep;
 
@@ -49,20 +53,26 @@ public class GameState : MonoBehaviour
     // Start is called before the first frame update
     void Start() {
         // Debug
+        if (checkpointOverride != null && checkpointOverride != "") Game.PlayerState.Checkpoint = checkpointOverride;
+        /*
         if (Game.PlayerState.Deaths <= 0) {
-            Game.PlayerState.PlayIntro = true;
+            Game.PlayerState.PlayIntro = false;
             Game.Axis.InvertCameraX = true;
             Game.Axis.InvertCameraY = true;
             Game.Axis.InvertAimX = true;
             Game.Axis.InvertAimY = true;
-            //Game.PlayerState.Checkpoint = "Checkpoint1";
-            Game.PlayerState.Checkpoint = null;
+            //Game.PlayerState.Checkpoint = null;
             Game.PlayerState.Sword = true;
+            Game.PlayerState.Lift = true;
+            Game.PlayerState.Jump = true;
+            Game.PlayerState.Hookshot = true;
             playerObj.GetComponent<Attack>().Enable();
             //Death();
         }
+        */
         if (GameObject.Find("MusicContainer") != null) {
             musicContainer = GameObject.Find("MusicContainer").GetComponent<AudioSource>();
+            musicContainer.volume = 0.228f;
         }
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
@@ -96,13 +106,17 @@ public class GameState : MonoBehaviour
             playerObj.transform.position = Util.GetCheckpoint(Game.PlayerState.Checkpoint).transform.position;
             playerObj.transform.rotation = Util.GetCheckpoint(Game.PlayerState.Checkpoint).transform.rotation;
             mainCamera.GetComponent<CameraBehavior>().Respawn(Util.GetCheckpoint(Game.PlayerState.Checkpoint));
-            musicContainer.clip = castleMusic;
-            musicContainer.Play();
+            if (musicContainer != null) {
+                if (musicContainer.GetComponent<FadeHandler>() != null) {
+                    musicContainer.GetComponent<FadeHandler>().Abort(-1);
+                }
+                musicContainer.clip = castleMusic;
+                musicContainer.Play();
+            }
         } else {
             DisableIntroCam(9);
             error = Instantiate(new GameObject(), uiCanvas.transform);
             error.AddComponent<TextMeshProUGUI>();
-            //error.AddComponent<RectTransform>();
             error.GetComponent<RectTransform>().pivot = new Vector2(0, 1);
             error.GetComponent<RectTransform>().anchorMin = new Vector2(0, 1);
             error.GetComponent<RectTransform>().anchorMax = new Vector2(0, 1);
@@ -154,7 +168,7 @@ public class GameState : MonoBehaviour
             if (deathTimer > 3) {
                 Debug.Log("GameOver screen");
                 deathTimer = -1;
-                musicContainer.GetComponent<FadeHandler>().FadeAudio();
+                if (musicContainer != null) musicContainer.GetComponent<FadeHandler>().FadeAudio();
                 gameOverScreenInstance = Instantiate(gameOverScreen, uiCanvas.transform);
             } else {
                 deathTimer += Time.deltaTime;
@@ -206,7 +220,6 @@ public class GameState : MonoBehaviour
         for (int i = idx; i > 0; i--) {
             GameObject cam = GameObject.Find("IntroCam" + i);
             if (cam != null) {
-                //Destroy(GameObject.Find("IntroCam" + idx));
                 cam.GetComponent<Camera>().enabled = false;
                 cam.GetComponent<Camera>().depth = 0;
             }
@@ -218,7 +231,6 @@ public class GameState : MonoBehaviour
         pauseScreenInstance = Instantiate(pauseScreen, uiCanvas.transform);
         playerObj.GetComponent<InputHandler>().enabled = false;
         mainCamera.GetComponent<CameraBehavior>().enabled = false;
-        //Time.timeScale = 0;
     }
 
     public void Unpause() {
@@ -226,7 +238,6 @@ public class GameState : MonoBehaviour
         Destroy(pauseScreenInstance);
         if (!isDying) playerObj.GetComponent<InputHandler>().enabled = true;
         mainCamera.GetComponent<CameraBehavior>().enabled = true;
-        //Time.timeScale = 1;
     }
 
     private void UpdateIntroCam(int idx) {
@@ -247,7 +258,6 @@ public class GameState : MonoBehaviour
     public void AWinnerIsYou() {
         introTimer = 0;
         uiCanvas.transform.Find("HUD").GetComponent<RectTransform>().localScale = Vector3.zero;
-        playerObj.GetComponent<InputHandler>().enabled = false;
         mainCamera.enabled = false;
         introStep = GetIntroStep(12);
     }
@@ -259,7 +269,6 @@ public class GameState : MonoBehaviour
             GameObject.Find("IntroCam" + idx).GetComponent<Camera>().enabled = true;
             GameObject.Find("IntroCam" + idx).GetComponent<Camera>().depth = 1;
             Debug.Log("Intro" + idx);
-            //return Intro2;
             return GetIntroStep(idx + 1);
         }
         return GetIntroStep(idx);
@@ -284,7 +293,7 @@ public class GameState : MonoBehaviour
         if (CanAdvanceDialog()) {
             introTimer = 0;
             Destroy(introDialog);
-            List<string> dialogText = new List<string> { "But darkness fell over the land, and the princess was kidnapped by the evil wizard, GROMDAK ...", "" };
+            List<string> dialogText = new List<string> { "But darkness fell over the land, and the PRINCESS was kidnapped by the evil wizard, GROMDAK ...", "" };
             List<Camera> cameras = new List<Camera> { GameObject.Find("IntroCam" + idx).GetComponent<Camera>() };
             introDialog = Util.CreateDialogBox(uiCanvas, dialogText, cameras);
             Debug.Log("IntroCam" + idx);
@@ -311,7 +320,6 @@ public class GameState : MonoBehaviour
         if (introTimer >= 4) {
             introTimer = 0;
             List<string> dialogText = new List<string> { "... to live out her days in a cold, dark dungeon.", "" };
-            //List<Camera> cameras = new List<Camera> { GameObject.Find("IntroCam" + idx).GetComponent<Camera>() };
             List<Camera> cameras = new List<Camera>();
             introDialog = Util.CreateDialogBox(uiCanvas, dialogText, cameras);
             Debug.Log("IntroCam" + idx, this);
@@ -328,7 +336,6 @@ public class GameState : MonoBehaviour
                     introPrincess.GetComponent<Animator>().SetBool("isLifted", false);
                     introWizard.GetComponent<Animator>().SetBool("throwStart", true);
                 } else {
-                    //introPrincess.GetComponent<CapsuleCollider>().isTrigger = true;
                     introPrincess.transform.rotation = Quaternion.RotateTowards(introPrincess.transform.rotation, Quaternion.Euler(0, 0, 1), 360 * Time.deltaTime);
                     introWizard.GetComponent<Animator>().SetBool("throwStart", false);
                     GameObject.Find("CellDoor").GetComponent<DoorClose>().Close();
@@ -367,7 +374,6 @@ public class GameState : MonoBehaviour
             nameInput = Instantiate(nameInput, introDialog.transform);
             nameInput.GetComponent<TMP_InputField>().Select();
             nameInput.GetComponent<TMP_InputField>().ActivateInputField();
-            //nameInput.GetComponent<TMP_InputField>();
             Debug.Log("IntroCam" + idx, this);
             return GetIntroStep(idx + 1);
         }
@@ -380,13 +386,10 @@ public class GameState : MonoBehaviour
             lastTextInputTime = Time.time + 0.16f;
         }
         if (Time.time - lastTextInputTime > 0.08 && nameInput.GetComponent<TMP_InputField>().text.Length >= 1 && nameInput.GetComponent<TMP_InputField>().text.Length < 32) {
-            //nameInput.GetComponent<TMP_InputField>().SetTextWithoutNotify(nameInput.GetComponent<TMP_InputField>().text + nameInput.GetComponent<TMP_InputField>().text[nameInput.GetComponent<TMP_InputField>().textComponent.text.Length - 2]);
             nameInput.GetComponent<TMP_InputField>().text += nameInput.GetComponent<TMP_InputField>().text[nameInput.GetComponent<TMP_InputField>().textComponent.text.Length - 2];
             lastTextInputTime = Time.time;
             nameInput.GetComponent<TMP_InputField>().caretPosition = nameInput.GetComponent<TMP_InputField>().text.Length;
             GameObject.Find("ErrorSound").GetComponent<AudioSource>().Play();
-            //nameInput.GetComponent<TMP_InputField>().DeactivateInputField();
-            //Debug.Log(nameInput.GetComponent<TMP_InputField>().textComponent.text + "; length: " + nameInput.GetComponent<TMP_InputField>().textComponent.text.Length);
         } else if (nameInput.GetComponent<TMP_InputField>().text.Length >= 32) {
             Game.PlayerState.HeroName = nameInput.GetComponent<TMP_InputField>().textComponent.text;
             introTimer = 0;
@@ -394,7 +397,6 @@ public class GameState : MonoBehaviour
             List<string> dialogText = new List<string> { "Yes, " + Game.PlayerState.HeroName + " is a very heroic name!", "" };
             List<Camera> cameras = new List<Camera>();
             introDialog = Util.CreateDialogBox(uiCanvas, dialogText, cameras);
-            //introDialog.transform.Find("DialogMore").GetComponent<TextMeshProUGUI>().text = "";
             Destroy(nameInput);
             Debug.Log("IntroCam" + idx, this);
             return GetIntroStep(idx + 1);
@@ -423,7 +425,6 @@ public class GameState : MonoBehaviour
         if (CanAdvanceDialog()) {
             introTimer = 0;
             Destroy(introDialog);
-            //introCam.transform.parent = introPrincess.transform;
             Debug.Log("IntroCam" + idx, this);
             return GetIntroStep(idx + 1);
         }
@@ -446,11 +447,9 @@ public class GameState : MonoBehaviour
             introTimer = 0;
             uiCanvas.transform.Find("HUD").GetComponent<RectTransform>().localScale = new Vector3(1, 1, 1);
             playerObj.GetComponent<InputHandler>().enabled = true;
-            //mainCamera.GetComponent<CameraBehavior>().enabled = true;
             mainCamera.enabled = true;
             playerObj.transform.position = new Vector3(introPrincess.transform.position.x, introPrincess.transform.position.y + 0.05f, introPrincess.transform.position.z);
             playerObj.transform.rotation = introPrincess.transform.rotation;
-            //mainCamera.transform.position = introCam.transform.position;
             DisableIntroCam(9);
             Destroy(introPrincess);
             if (musicContainer != null) musicContainer.GetComponent<FadeHandler>().FadeAudio();
@@ -473,9 +472,46 @@ public class GameState : MonoBehaviour
             introTimer = 0;
             GameObject.Find("IntroCam" + idx).GetComponent<Camera>().enabled = true;
             GameObject.Find("IntroCam" + idx).GetComponent<Camera>().depth = 1;
+            List<string> dialogText = new List<string> { "PRINCESS:\n" + Game.PlayerState.HeroName + "! You have defeated the evil GROMDAK and rescued me from this accursed dungeon! The kingdom is forever in your debt. Now collect your reward!", "PRINCESS:\nWhat a hero!" };
+            introCam = GameObject.Find("IntroCam" + idx).GetComponent<Camera>();
+            List<Camera> cameras = new List<Camera> { introCam, introCam };
+            introDialog = Util.CreateDialogBox(uiCanvas, dialogText, cameras);
+            playerObj.GetComponent<InputHandler>().activeDialog = introDialog;
             Debug.Log("Intro" + idx);
-            //return Intro2;
             return GetIntroStep(idx + 1);
+        }
+        return GetIntroStep(idx);
+    }
+
+    private IntroStep Intro13() {
+        int idx = 13;
+        if (Vector3.Distance(playerObj.transform.position, hero.transform.position) > 2.5 && ! playerIsInEndingPos) {
+            playerObj.transform.position = Vector3.MoveTowards(playerObj.transform.position, 
+                hero.transform.position + (playerObj.transform.position - hero.transform.position).normalized * 1.75f, 
+                500 * Time.deltaTime);
+        } else playerIsInEndingPos = true;
+        playerObj.transform.rotation = Quaternion.LookRotation(Util.FlattenVectorOnY(hero.transform.position - playerObj.transform.position));
+        if (playerObj.GetComponent<InputHandler>().activeDialog == null) {
+            introTimer = 0;
+            introCam.enabled = true;
+            introCam.depth = 1;
+            playerObj.GetComponent<InputHandler>().enabled = false;
+            Debug.Log("Intro" + idx);
+            return GetIntroStep(idx + 1);
+        }
+        introCam.enabled = true;
+        introCam.depth = 1;
+        return GetIntroStep(idx);
+    }
+    private IntroStep Intro14() {
+        int idx = 14;
+        if (introTimer > 3) {
+            introTimer = 0;
+            Debug.Log("Intro" + idx);
+            Debug.Log("ENDING SCREEN");
+            if (musicContainer != null) musicContainer.GetComponent<FadeHandler>().FadeAudio();
+            endingScreenInstance = Instantiate(endingScreen, uiCanvas.transform);
+            return null;
         }
         return GetIntroStep(idx);
     }

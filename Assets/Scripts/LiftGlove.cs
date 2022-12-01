@@ -77,12 +77,10 @@ public class LiftGlove : MonoBehaviour
         if (isLifting && liftInput > 0 && CooldownIsUp() && !inputHeld && liftObj.GetComponent<LiftTarget>().liftLerp >= 1) {
             isLifting = false;
             Vector3 throwDirection = (Quaternion.AngleAxis(liftObj.GetComponent<LiftTarget>().throwAngle * -1, transform.right) * transform.forward).normalized;
-            //Vector3 throwDirection = (Quaternion.AngleAxis(0, transform.right) * transform.forward);
             liftObj.GetComponent<LiftTarget>().EndLift(throwDirection, GetComponent<Rigidbody>().velocity / 5);
             isThrowFrame = true;
             anim.SetBool("throwStart", true);
             transform.Find("Throw").GetComponent<AudioSource>().Play();
-            //liftObj.GetComponent<LiftTarget>().EndLift(throwDirection, 5);
             Debug.Log("Throwing object at angle: " + liftObj.GetComponent<LiftTarget>().throwAngle * -1 + " with velocity " + GetComponent<Rigidbody>().velocity / 10 + " in direction " + throwDirection);
         }
     }

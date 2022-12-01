@@ -65,12 +65,10 @@ public class MainMenu : MonoBehaviour
         spacer = horiz.transform.Find("Spacer").gameObject;
         Cursor.SetCursor(cursor, Vector2.zero, CursorMode.ForceSoftware);
 
-        //currentMenuContext = main;
         settings.GetComponent<RectTransform>().localScale = new Vector3(0, 0, 0);
         controls.GetComponent<SVGImage>().enabled = false;
         title.GetComponent<Image>().enabled = false;
         main.GetComponent<RectTransform>().localScale = new Vector3(0, 0, 0);
-        //main.transform.Find("StartButton").gameObject.GetComponent<Button>().Select();
         Game.Menu.GameFont = gameFont;
         GameObject.Find("MusicContainer").GetComponent<AudioSource>().clip = music;
         if (GameObject.Find("MenuClickSound") != null) {
@@ -117,7 +115,8 @@ public class MainMenu : MonoBehaviour
 
     public void StartClicked() {
         if (menuConfirm != null) menuConfirm.Play();
-        if (currentMenuContext == main) SceneManager.LoadSceneAsync("Castle");
+        eventSystem.currentSelectedGameObject.GetComponent<Button>().transform.Find("Text (TMP)").GetComponent<TextMeshProUGUI>().text += " (Loading...)";
+        if (currentMenuContext == main) SceneManager.LoadScene("Castle");
     }
 
     public void ExitClicked() {

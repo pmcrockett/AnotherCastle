@@ -32,9 +32,9 @@ public class DialogBox : MonoBehaviour
             }
             GetComponent<TextMeshProUGUI>().text = Util.FixNewline(dialog[activeIdx]);
             if (activeIdx < dialog.Count - 1) {
-                transform.parent.Find("DialogMore").GetComponent<TextMeshProUGUI>().text = "(Attack button: more)";
+                transform.parent.Find("DialogMore").GetComponent<TextMeshProUGUI>().text = "More - (Attack button)";
             } else {
-                transform.parent.Find("DialogMore").GetComponent<TextMeshProUGUI>().text = "(End)";
+                transform.parent.Find("DialogMore").GetComponent<TextMeshProUGUI>().text = "Dismiss - (Attack button)";
             }
             GameObject.Find("DialogSound").GetComponent<AudioSource>().Play();
             return true;

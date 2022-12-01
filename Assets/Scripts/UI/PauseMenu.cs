@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using TMPro;
 
 public class PauseMenu : MonoBehaviour
 {
@@ -53,14 +54,15 @@ public class PauseMenu : MonoBehaviour
         if (menuConfirm != null) menuConfirm.Play();
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
+        eventSystem.currentSelectedGameObject.GetComponent<Button>().transform.Find("Text (TMP)").GetComponent<TextMeshProUGUI>().text += " (Loading...)";
         Time.timeScale = 1;
-        SceneManager.LoadSceneAsync("Castle");
+        SceneManager.LoadScene("Castle");
     }
     public void QuitClicked() {
         if (menuConfirm != null) menuConfirm.Play();
         Time.timeScale = 1;
         Game.Menu.SkipSplash = true;
-        SceneManager.LoadSceneAsync("TitleScreen");
+        SceneManager.LoadScene("TitleScreen");
     }
 
     public void ControlsClicked() {

@@ -20,11 +20,14 @@ public class MusicTrigger : MonoBehaviour
 
     private void OnTriggerEnter(Collider other) {
         if (other.gameObject == triggeringObj) {
-            if (GameObject.Find("MusicContainer") != null
-                && GameObject.Find("MusicContainer").GetComponent<AudioSource>().clip != music 
-                || !GameObject.Find("MusicContainer").GetComponent<AudioSource>().isPlaying) {
-                GameObject.Find("MusicContainer").GetComponent<AudioSource>().clip = music;
-                GameObject.Find("MusicContainer").GetComponent<AudioSource>().Play();
+            if (GameObject.Find("MusicContainer") != null) {
+                if (GameObject.Find("MusicContainer").GetComponent<AudioSource>().clip != music
+                        || !GameObject.Find("MusicContainer").GetComponent<AudioSource>().isPlaying) {
+                    GameObject.Find("MusicContainer").GetComponent<AudioSource>().clip = music;
+                    GameObject.Find("MusicContainer").GetComponent<AudioSource>().loop = true;
+                    GameObject.Find("MusicContainer").GetComponent<AudioSource>().volume = 0.228f;
+                    GameObject.Find("MusicContainer").GetComponent<AudioSource>().Play();
+                }
             }
         }
     }

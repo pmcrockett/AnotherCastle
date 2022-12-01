@@ -538,8 +538,8 @@ MonoBehaviour:
   point: {fileID: 0}
   chain: {fileID: 0}
   hookshotLength: 45
-  reelSpeed: 4
-  aimSpeedDenominator: 2
+  reelSpeed: 5
+  aimSpeedDenominator: 4
   isAiming: 0
   isEnabled: 0
   isMoving: 0

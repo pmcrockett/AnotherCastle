@@ -91,6 +91,7 @@ public class Util
 		moreText.rectTransform.anchorMax = new Vector2(1, 0);
 		moreText.rectTransform.sizeDelta = new Vector2(600, 40);
 		moreText.GetComponent<TextMeshProUGUI>().horizontalAlignment = HorizontalAlignmentOptions.Right;
+		moreText.GetComponent<TextMeshProUGUI>().fontSize = moreText.GetComponent<TextMeshProUGUI>().fontSize - 6;
 		moreText.rectTransform.anchoredPosition = new Vector3(_leftRightPad * -1, _topBottomPad, 0);
 		moreText.font = Game.Menu.GameFont;
 		moreObj.name = "DialogMore";

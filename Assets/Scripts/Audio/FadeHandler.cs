@@ -33,4 +33,10 @@ public class FadeHandler : MonoBehaviour
         isFadingOut = true;
         prefadeVol = source.volume;
     }
+
+    public void Abort(float _vol) {
+        if (_vol < 0) source.volume = prefadeVol;
+        else source.volume = _vol;
+        isFadingOut = false;
+    }
 }

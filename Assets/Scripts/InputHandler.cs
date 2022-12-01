@@ -47,6 +47,7 @@ public class InputHandler : MonoBehaviour
     private AudioSource landSound;
     private AudioSource footstepLSound;
     private AudioSource footstepRSound;
+    private bool hookshotNeedsInterrupt = false;
     
     void Awake()
     {
@@ -54,7 +55,6 @@ public class InputHandler : MonoBehaviour
         body = GetComponent<Rigidbody>();
         anim = GetComponent<Animator>();
         attack = GetComponent<Attack>();
-        //jumpCollider = GetComponent<BoxCollider>();
         jumpCollider = GetComponent<SphereCollider>();
         fallCastRadius = (Util.GetColliderWidth(gameObject) - 0.02f) / 2;
         hookshot = GetComponent<Hookshot>();
@@ -86,10 +86,7 @@ public class InputHandler : MonoBehaviour
     void Update()
     {
         if (activeDialog == null) {
-            //if (!isFalling && lastMoveInput != Vector3.zero && !disableMoveImpulse) {
             if (!isFalling && desiredForward != Vector3.zero && !disableMoveImpulse && climbLerp <= 0) {
-                //transform.rotation = Quaternion.LookRotation(lastMoveInput, Vector3.up);
-                //Quaternion idealRotation = Quaternion.LookRotation(lastMoveInput, Vector3.up);
                 Quaternion idealRotation = Quaternion.LookRotation(desiredForward, Vector3.up);
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, idealRotation, rotateSpeed * Time.deltaTime);
             } else if (isFalling && lastMoveInput != Vector3.zero) {
@@ -112,6 +109,10 @@ public class InputHandler : MonoBehaviour
         Movement();
         ClimbStairs();
         lastUpdatePosition = transform.position;
+        if (hookshotNeedsInterrupt) {
+            hookshot.Interrupt();
+            hookshotNeedsInterrupt = false;
+        }
     }
 
     private void Movement()
@@ -123,18 +124,15 @@ public class InputHandler : MonoBehaviour
         } else moveSpeed = 0;
         Vector2 moveInput = input.Player.Move.ReadValue<Vector2>();
         moveInput *= moveSpeed * Time.deltaTime;
-        //Debug.Log("moveInput: " + input.Player.Move.ReadValue<Vector2>());
         Vector3 flattenedForward = new Vector3(playerCamera.transform.forward.x, 0, playerCamera.transform.forward.z).normalized;
         Vector3 flattenedRight = new Vector3(playerCamera.transform.right.x, 0, playerCamera.transform.right.z).normalized;
         Vector3 moveForce = flattenedForward * moveInput.y + flattenedRight * moveInput.x;
-        //if (!disableMoveImpulse && !hookshot.isMoving && climbLerp <= 0) body.AddForce(moveForce);
         if (!disableMoveImpulse && !hookshot.isMoving && climbLerp <= 0 && !attack.isAttacking) {
             if ((!isFalling && Vector3.Dot(transform.forward, moveForce.normalized) >= 0.8) || isFalling) {
                 RaycastHit wallHit = DetectWall();
                 if (wallHit.collider == null) {
                     body.AddForce(transform.forward * moveForce.magnitude);
                 } else if (Vector3.Dot(Util.FlattenVectorOnY(wallHit.normal), transform.forward) > -0.8) {
-                //} else {
                     Debug.Log("WallDetected");
                     Vector3 newForward = (Vector3.Dot(Quaternion.Euler(0, 90, 0) * wallHit.normal, transform.forward) > 0 ? Quaternion.Euler(0, 90, 0) * wallHit.normal : Quaternion.Euler(0, -90, 0) * wallHit.normal);
                     body.AddForce(newForward * moveForce.magnitude);
@@ -148,7 +146,6 @@ public class InputHandler : MonoBehaviour
         } else {
             anim.SetFloat("walkSpeed", 0);
         }
-        //Debug.Log(desiredForward);
     }
 
     private RaycastHit DetectWall() {
@@ -355,8 +352,7 @@ public class InputHandler : MonoBehaviour
             Debug.DrawLine(transform.position, transform.position + wallCastDir, Color.red, 5);
             if (wallCast.collider) {
                 Vector3 reboundDir;
-                //wallJumpVector = new Vector3(currentMoveDirection.x * -1, Mathf.Clamp(currentMoveDirection.y * 12, 0.75f, 8), currentMoveDirection.z * -1).normalized;
-                wallJumpVector = new Vector3(wallCast.normal.x, Mathf.Clamp(currentMoveDirection.y * 12, 0.75f, 2), wallCast.normal.z).normalized;
+                wallJumpVector = new Vector3(wallCast.normal.x, Mathf.Clamp(currentMoveDirection.y * 12, 1.25f, 4), wallCast.normal.z).normalized;
                 if (Time.time - lastWallJumpTime <= 0.25 && jumpEnabled && !canJump && !GetComponent<LiftGlove>().isLifting && activeDialog == null) {
                     WallJump(wallJumpVector);
                 } else {
@@ -371,20 +367,10 @@ public class InputHandler : MonoBehaviour
             }
         }
     }
-    private void OnCollisionExit(Collision collision) {
-        if (collision.collider.tag == "Floor") {
-            //disableMoveImpulse = false;
-        }
-    }
-    private void OnCollisionStay(Collision collision) {
-        if (collision.collider.tag == "Floor" && !canJump) {
-            disableMoveImpulse = true;
-        }
-    }
     
     private void OnTriggerEnter(Collider other) {
-        if (hookshot.isMoving) {
-            //hookshot.Interrupt();
+        if (hookshot.isMoving && ! hookshotNeedsInterrupt) {
+            hookshotNeedsInterrupt = true;
         }
     }
 }

@@ -165,6 +165,7 @@ GameObject:
   - component: {fileID: 2659898268057537497}
   - component: {fileID: 1565622923568664274}
   - component: {fileID: 7053922586830205801}
+  - component: {fileID: 654858380}
   m_Layer: 7
   m_Name: Treasure
   m_TagString: Untagged
@@ -266,6 +267,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ae28e42a24d2b9c47b0d4ce0d6525a78, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &654858380
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3240278208347592075}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a752aac78dc5bff48a41c593e335d2b8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  display: {fileID: 0}
+  dialog:
+  - You got ...
+  - The Jump Boots!\n\nPress (A) to jump. You can wall jump if you jump again as
+    you hit a wall. You can also grab ledges by holding (A) when near them.
+  cameras:
+  - {fileID: 0}
+  - {fileID: 0}
+  contents: Jump
+  isOpen: 0
 --- !u!1 &6065003717236806619
 GameObject:
   m_ObjectHideFlags: 0

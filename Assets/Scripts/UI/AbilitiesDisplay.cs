@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.VectorGraphics;
+using UnityEngine.UI;
 
 public class AbilitiesDisplay : MonoBehaviour
 {
@@ -9,6 +10,7 @@ public class AbilitiesDisplay : MonoBehaviour
     public SVGImage jump;
     public SVGImage lift;
     public SVGImage sword;
+
 
     // Start is called before the first frame update
     void Start()

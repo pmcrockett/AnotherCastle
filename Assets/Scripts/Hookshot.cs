@@ -58,7 +58,6 @@ public class Hookshot : MonoBehaviour
                 Fire();
             } else if (targetInstance != null) Destroy(targetInstance);
             if (isMoving) {
-            //if (false) {
                 lerpVal += reelSpeed * Time.deltaTime;
                 if (lerpVal >= 1) {
                     Interrupt();
@@ -90,7 +89,6 @@ public class Hookshot : MonoBehaviour
             Destroy(removeChain);
             i--;
         }
-        //chainInstances.Clear();
         Destroy(pointInstance);
         pointInstance = null;
     }
@@ -102,12 +100,10 @@ public class Hookshot : MonoBehaviour
         RaycastHit hookshotHit;
         hookshotHit = GetHookshotHit();
         if (hookshotHit.collider != null) {
-            //targetInstance.transform.position = hookshotHit.point - hookshotHit.normal * 0.1f;
             targetInstance.transform.position = hookshotHit.point;
             targetInstance.transform.up = hookshotHit.normal;
             if (hookshotHit.collider.gameObject.GetComponent<HookshotTarget>() == null) {
                 targetInstance.GetComponent<MeshRenderer>().material = noMat;
-            //} else if (hookshotHit.collider.gameObject.GetComponent<HookshotTarget>() != null && targetInstance.GetComponent<MeshRenderer>().material == noMat) {
             } else {
                 targetInstance.GetComponent<MeshRenderer>().material = yesMat;
             }

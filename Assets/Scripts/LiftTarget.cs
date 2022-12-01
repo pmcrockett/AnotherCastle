@@ -34,10 +34,6 @@ public class LiftTarget : MonoBehaviour
         }
     }
     private void FixedUpdate() {
-        //Debug.Log("Width: " + Util.GetColliderWidth(gameObject) + "; Scale x: " + transform.localScale.x + "; Scale z: " + transform.localScale.z + "; (Util.GetColliderWidth(gameObject) - 0.02f) / 2: " + (Util.GetColliderWidth(gameObject) - 0.02f) / 2);
-        //RaycastHit fallCast;
-        //Debug.Log(Physics.SphereCast(transform.position, (Util.GetColliderWidth(gameObject) - 0.02f) / 2, Vector3.down, out fallCast, 9999999, 0b10000000, QueryTriggerInteraction.Ignore));
-        //Debug.Log(fallCast.distance + " vs. " + (Util.GetColliderHeight(gameObject) / 1.9 - (Util.GetColliderWidth(gameObject) - 0.02f) / 2));
         if (Util.IsGrounded(gameObject, (Util.GetColliderWidth(gameObject) - 0.02f) / 2)) {
             if (GetComponent<Rigidbody>().velocity == Vector3.zero) GetComponent<Rigidbody>().isKinematic = true;
             if (!wasPreviouslyGrounded) {

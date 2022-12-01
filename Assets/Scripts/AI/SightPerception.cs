@@ -54,6 +54,7 @@ public class SightPerception : MonoBehaviour {
 
     private void ScanForTarget(GameObject _target) {
         targetInSight = false;
+        if (Vector3.Distance(_target.transform.position, transform.position) > sightDist) return;
         sightOrigin = new Vector3(transform.position.x, transform.position.y + sightOriginOffset, transform.position.z);
         RaycastHit sightHit;
         for (int i = 0; i < castVertCount; i++) {

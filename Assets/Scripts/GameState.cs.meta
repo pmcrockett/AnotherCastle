@@ -3,7 +3,21 @@ guid: b5cc940c1050bdd44a2173f3af268b97
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - playerObj: {fileID: 7721680575744541438, guid: ecd54f144265ffc4d892b80985c211b7,
+      type: 3}
+  - mainCamera: {instanceID: 0}
+  - uiCanvas: {instanceID: 0}
+  - gameOverScreen: {instanceID: 0}
+  - pauseScreen: {instanceID: 0}
+  - endingScreen: {instanceID: 0}
+  - currentCheckpoint: {instanceID: 0}
+  - error: {instanceID: 0}
+  - introWizard: {instanceID: 0}
+  - introPrincess: {instanceID: 0}
+  - nameInput: {instanceID: 0}
+  - hero: {instanceID: 0}
+  - castleMusic: {instanceID: 0}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

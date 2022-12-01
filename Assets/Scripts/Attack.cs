@@ -72,6 +72,7 @@ public class Attack : MonoBehaviour {
             } else adjustedRange = attackRange;
             attackSound.GetComponent<RandomRobin>().RefreshClip();
             attackSound.Play();
+            ResetSwordPos();
         }
     }
 
@@ -81,6 +82,7 @@ public class Attack : MonoBehaviour {
         attackLerp = 0;
         anim.SetBool("isAttacking", false);
         hitObjects.Clear();
+        ResetSwordPos();
     }
 
     private void OnCollisionEnter(Collision collision) {
@@ -106,6 +108,10 @@ public class Attack : MonoBehaviour {
     public void Enable() {
         isEnabled = true;
         swordInstance = Instantiate(sword, transform.Find("root").transform.Find("Hips").transform.Find("Stomach").transform.Find("Chest").transform.Find("Hand.R").transform);
+        ResetSwordPos();
+    }
+
+    private void ResetSwordPos() {
         swordInstance.transform.rotation = swordInstance.transform.parent.transform.rotation * Quaternion.Euler(new Vector3(24.2405167f, 70.7948303f, 108.666313f));
         swordInstance.transform.position = swordInstance.transform.parent.transform.position;
         swordInstance.transform.localPosition = new Vector3(0.000750000007f, 0.00677999994f, 0.000380000012f);

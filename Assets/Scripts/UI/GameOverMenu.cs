@@ -11,6 +11,8 @@ public class GameOverMenu : MonoBehaviour
     public Texture2D cursor;
     public EventSystem eventSystem;
     private GameObject lastSelected = null;
+    private AudioSource menuClick;
+    private AudioSource menuConfirm;
     // Start is called before the first frame update
     void Start()
     {
@@ -18,7 +20,18 @@ public class GameOverMenu : MonoBehaviour
         Cursor.lockState = CursorLockMode.Confined;
         eventSystem = GameObject.Find("EventSystem").GetComponent<EventSystem>();
         Cursor.SetCursor(cursor, Vector2.zero, CursorMode.ForceSoftware);
-        transform.Find("RetryButton").gameObject.GetComponent<Button>().Select();
+        if (GameObject.Find("MenuClickSound") != null) {
+            menuClick = GameObject.Find("MenuClickSound").GetComponent<AudioSource>();
+        }
+        if (GameObject.Find("MenuConfirmSound") != null) {
+            menuConfirm = GameObject.Find("MenuConfirmSound").GetComponent<AudioSource>();
+        }
+        if (transform.Find("RetryButton") != null) {
+            transform.Find("RetryButton").gameObject.GetComponent<Button>().Select();
+        } else if (transform.Find("QuitButton") != null) {
+            transform.Find("QuitButton").gameObject.GetComponent<Button>().Select();
+        }
+        if (menuClick != null) menuClick.Play();
     }
 
     // Update is called once per frame
@@ -30,12 +43,15 @@ public class GameOverMenu : MonoBehaviour
     }
 
     public void RetryClicked() {
+        if (menuConfirm != null) menuConfirm.Play();
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
-        SceneManager.LoadSceneAsync("Castle");
+        eventSystem.currentSelectedGameObject.GetComponent<Button>().transform.Find("Text (TMP)").GetComponent<TextMeshProUGUI>().text += " (Loading...)";
+        SceneManager.LoadScene("Castle");
     }
     public void QuitClicked() {
+        if (menuConfirm != null) menuConfirm.Play();
         Game.Menu.SkipSplash = true;
-        SceneManager.LoadSceneAsync("TitleScreen");
+        SceneManager.LoadScene("TitleScreen");
     }
 }

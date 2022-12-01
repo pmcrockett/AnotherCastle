@@ -28,13 +28,11 @@ public class HealthDisplay : MonoBehaviour
         Debug.Log("Heart delta is " + heartDelta);
         if (heartDelta > 0) {
             for (int i = 0; i < heartDelta; i++) {
-                Instantiate(icon, transform).gameObject.name = "Heart"; ;
+                Instantiate(icon, transform).gameObject.name = "Heart";
             }
         } else if (heartDelta < 0) {
-            //for (int i = heartDelta; i < 0; i++) {
             int idx = 0;
             foreach (Transform x in transform) {
-                //Destroy(transform.GetChild(0).gameObject);
                 Destroy(x.gameObject);
                 Debug.Log("Heart destroyed");
                 idx--;

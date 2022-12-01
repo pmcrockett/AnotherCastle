@@ -48,11 +48,20 @@ public class Switch : MonoBehaviour
         } else if (!isTriggered && switchLerp <= 0 && switchTargetLerp > 0) {
             switchTargetLerp = LerpTarget(switchTargetLerp, "-");
         }
+        /*
+        if (switchLerp >= 1) {
+            switchTarget.transform.position = switchTargetTriggeredPosition;
+            switchTarget.transform.rotation = switchTargetTriggeredQuat;
+        } else if (switchLerp <= 0) {
+            switchTarget.transform.position = switchTargetInitialPosition;
+            switchTarget.transform.rotation = switchTargetInitialQuat;
+        }
+        */
     }
     private float LerpSwitch(float _lerpVal, string _lerpDir) {
         transform.position = Vector3.Lerp(initialPosition, triggeredPosition, _lerpVal);
-        if (_lerpDir == "+") return _lerpVal + triggerSpeed * Time.deltaTime;
-        else return _lerpVal - triggerSpeed * Time.deltaTime;
+        if (_lerpDir == "+") return Mathf.Clamp(_lerpVal + triggerSpeed * Time.deltaTime, 0, 1);
+        else return Mathf.Clamp(_lerpVal - triggerSpeed * Time.deltaTime, 0, 1);
     }
     private float LerpTarget(float _lerpVal, string _lerpDir) {
         switchTarget.transform.rotation = Quaternion.Lerp(switchTargetInitialQuat, switchTargetTriggeredQuat, _lerpVal);

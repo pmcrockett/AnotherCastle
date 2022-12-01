@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Hero : MonoBehaviour
 {
+    public float walkSpeed = 2;
     private Animator anim;
 
     private void Awake() {
@@ -12,7 +13,7 @@ public class Hero : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        anim.SetFloat("walkSpeed", 5);
+        anim.SetFloat("walkSpeed", walkSpeed);
     }
 
     // Update is called once per frame
