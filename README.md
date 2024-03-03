@@ -1,6 +1,6 @@
 # Another Castle
 
-![Another Castle banner]("/Screenshots/Another Castle- Banner.png"?raw=true "Another Castle banner")
+![Another Castle banner](/Screenshots/Another%20Castle-%20Banner.png?raw=true "Another Castle banner")
 
 Executable can be downloaded at https://mozipha.itch.io/another-castle
 
